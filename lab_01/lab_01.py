@@ -3,7 +3,10 @@ import tkinter.messagebox as box
 
 root = Tk()
 var = IntVar()
-c = Canvas(root, width=700, height=800, bg='white')
+
+sz = 1
+
+c = Canvas(root, width=700, height=900, bg='white')
 c.create_rectangle(4, 32, 266, 172, outline='black', width=2)
 c.create_rectangle(429, 32, 691, 172, outline='black', width=2)
 text1 = Text(width=36, height=10)
@@ -15,6 +18,11 @@ def clean_tri():
     triangls = c.find_withtag('triang')
     for tri in triangls:
         c.delete(tri)
+
+def clean_coords():
+    coords = c.find_withtag('coord')
+    for cor in coords:
+        c.delete(cor)
 
 def clean_all():
     global flag1, flag2
@@ -65,19 +73,22 @@ def click(event):
             tri_click(event, tri)
             return
 
-    if event.x < 40 or event.x > 690 or event.y < 210 or event.y > 750:
+    if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
 
     print_dot(event)
+    # text1.insert(END, f'({event.x}; {event.y}), \n')
+    crds = canv_to_net(event.x, event.y)
+    text1.insert(END, f'({crds[0]}; {crds[1]}) \n')
 
-    if var.get():
-        flag2 += 1
-        text2.insert(END, f'({event.x - 40}; {event.y - 210}), \n' if flag2 % 3 == 0 \
-                     else f'({event.x - 40}; {event.y - 210}), ')
-    else:
-        flag1 += 1
-        text1.insert(END, f'({event.x - 40}; {event.y - 210}), \n' if flag1 % 3 == 0 \
-                     else f'({event.x - 40}; {event.y - 210}), ')
+    # if var.get():
+    #     flag2 += 1
+    #     text2.insert(END, f'({event.x - 40}; {event.y - 210}), \n' if flag2 % 3 == 0 \
+    #                  else f'({event.x - 40}; {event.y - 210}), ')
+    # else:
+    #     flag1 += 1
+    #     text1.insert(END, f'({event.x - 40}; {event.y - 210}), \n' if flag1 % 3 == 0 \
+    #                  else f'({event.x - 40}; {event.y - 210}), ')
 
 def print_dot(event):
     x1, y1 = (event.x - 2), (event.y - 2)
@@ -196,35 +207,69 @@ def buttons_creation():
     btn_cl_all.place(x=365, y=140)
     btn_upd.place(x=310, y=80)
     btn_tri.place(x=327, y=110)
-    btn_exit.place(x=650, y=770)
+    btn_exit.place(x=650, y=840)
+
+def net_to_canv(x, y):
+    global sz
+    prev_sz = sz
+    center = (365, 510)
+    while x > -150*sz and x < 150*sz and y > -150*sz and y < 150*sz:
+        sz /= 2
+
+    while x < -300*sz or x > 300*sz or y < -300*sz or y > 300*sz:
+        sz *= 2
+
+    if sz != prev_sz:
+        redraw_coords()
+
+    return round(x/sz + center[0]), round(center[1] - y/sz)
+
+def canv_to_net(x, y):
+    global sz
+    center = (365, 510)
+
+    return round(x/sz - center[0]), round(center[1] - y/sz)
+
+def redraw_coords():
+    global sz
+    clean_coords()
+    for i in range(65, 750, 50):
+        c.create_text(i, 530, text=f'{round((i - 365)*sz)}' if i - 365 else '')
+
+    for i in range(210, 820, 50):
+        c.create_text(345, i + 10, text=f'{round(-(i - 510)*sz)}' if i - 510 else '')
 
 def coordinate_field_creation():
-    c.create_line(33, 210, 690, 210, fill='black',
+    c.create_line(33, 510, 690, 510, fill='black',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6")
-    c.create_line(40, 203, 40, 750, fill='black',
+    c.create_line(365, 820, 365, 185, fill='black',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6")
-    c.create_line(690, 210, 690, 750, fill='black',
+    c.create_line(665, 210, 665, 810, fill='black',
                   width=1, dash=(5, 9))
-    c.create_line(40, 750, 690, 750, fill='black',
+    c.create_line(65, 810, 665, 810, fill='black',
                   width=1, dash=(5, 9))
-    c.create_text(27, 197, text='0')
+    c.create_line(65, 210, 665, 210, fill='black',
+                  width=1, dash=(5, 9))
+    c.create_line(65, 210, 65, 810, fill='black',
+                  width=1, dash=(5, 9))
+    c.create_text(355, 520, text='0')
 
-    for i in range(90, 670, 50):
-        c.create_line(i, 203, i, 217, fill='black', width=2)
-        c.create_line(i, 220, i, 750, fill='black', width=1, dash=(1, 9))
-        c.create_text(i, 193, text=f'{i - 40}')
+    for i in range(65, 750, 50):
+        c.create_line(i, 503, i, 520, fill='black', width=2)
+        c.create_line(i, 210, i, 810, fill='black', width=1, dash=(1, 9))
+        c.create_text(i, 530, text=f'{i - 365}' if i - 365 else '', tag='coord')
 
-    for i in range(260, 730, 50):
-        c.create_line(33, i, 47, i, fill='black', width=2)
-        c.create_line(50, i, 690, i, fill='black', width=1, dash=(1, 9))
-        c.create_text(18, i, text=f'{i - 210}')
+    for i in range(210, 820, 50):
+        c.create_line(358, i, 372, i, fill='black', width=2)
+        c.create_line(65, i, 665, i, fill='black', width=1, dash=(1, 9))
+        c.create_text(345, i+10, text=f'{-(i - 510)}' if i - 510 else '', tag='coord')
 
-    c.create_text(680, 190, text='X', font='Verdana 20', fill='green')
-    c.create_text(20, 740, text='Y', font='Verdana 20', fill='green')
+    c.create_text(688, 498, text='X', font='Verdana 20', fill='green')
+    c.create_text(380, 195, text='Y', font='Verdana 20', fill='green')
     c.create_text(348, 25, text='Выбирать на поле точки:', font='Verdana 10')
 
 def radiobutton_creation():
@@ -241,6 +286,5 @@ text_and_labels_creation()
 buttons_creation()
 coordinate_field_creation()
 radiobutton_creation()
-
 c.pack()
 root.mainloop()
