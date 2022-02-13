@@ -6,13 +6,14 @@ var = IntVar()
 
 sz = 1
 
+
 c = Canvas(root, width=700, height=900, bg='white')
-c.create_rectangle(4, 32, 266, 172, outline='black', width=2)
-c.create_rectangle(429, 32, 691, 172, outline='black', width=2)
-text1 = Text(width=36, height=10)
-text2 = Text(width=36, height=10)
-flag1 = 0
-flag2 = 0
+c.create_rectangle(4, 32, 161, 172, outline='black', width=2)
+text1 = Text(width=21, height=10)
+ent1 = Entry(width=8)
+ent2 = Entry(width=8)
+ent1.place(x=32, y=177)
+ent2.place(x=132, y=177)
 
 def clean_tri():
     triangls = c.find_withtag('triang')
@@ -25,14 +26,27 @@ def clean_coords():
         c.delete(cor)
 
 def clean_all():
-    global flag1, flag2
-    flag1, flag2 = 0, 0
-    clean_tri()
     dotts = c.find_withtag('dot')
     for dot in dotts:
         c.delete(dot)
     text1.delete(1.0, END)
-    text2.delete(1.0, END)
+
+def add_dot():
+    d1 = ent1.get()
+    d2 = ent2.get()
+
+    try:
+        d1 = float(d1)
+        d2 = float(d2)
+        text1.insert(END, f'({d1:g}; {d2:g})\n')
+        dots_update()
+    except:
+        box.showinfo('Error', 'Некорректные координаты!1')
+
+def select_all():
+    text1.tag_add(SEL, "1.0", END)
+    text1.mark_set(INSERT, "1.0")
+    text1.see(INSERT)
 
 def tri_click(event, tag):
     triangls = list(c.find_withtag('triang'))
@@ -66,20 +80,15 @@ def is_cursor_touch_triang(tri, event):
         return 0
 
 def click(event):
-    global flag1, flag2
-    triangls = c.find_withtag('triang')
-    for tri in triangls:
-        if is_cursor_touch_triang(tri, event):
-            tri_click(event, tri)
-            return
-
+    if event.x >= 4 and event.y >= 32 and event.x <= 161 and event.y <= 172:
+        select_all()
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
 
     print_dot(event)
     # text1.insert(END, f'({event.x}; {event.y}), \n')
     crds = canv_to_net(event.x, event.y)
-    text1.insert(END, f'({crds[0]}; {crds[1]}) \n')
+    text1.insert(END, f'({crds[0]:g}; {crds[1]:g})\n')
 
     # if var.get():
     #     flag2 += 1
@@ -99,10 +108,10 @@ def print_dot(event):
         c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='dot')
 
 def dots_update():
-    sett1 = text1.get(1.0, END).split(',')[:-1] if text1.get(1.0, END).split(',')[-1].strip() == '' \
-        else text1.get(1.0, END).split(',')
-    sett2 = text2.get(1.0, END).split(',')[:-1] if text2.get(1.0, END).split(',')[-1].strip() == '' \
-        else text2.get(1.0, END).split(',')
+    sett = text1.get(1.0, END).split('\n')[:-1]
+
+    if not sett[-1]:
+        sett = sett[:-1]
 
     dotts = c.find_withtag('dot')
 
@@ -110,24 +119,27 @@ def dots_update():
         c.delete(dot)
 
     try:
-        for dot in sett1:
-            x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
-            if x1 < 0 or x1 > 650 or y1 < 0 or y1 > 540:
-                raise
-            x2, y2 = x1 + 2, y1 + 2
-            x1 -= 2
-            y1 -= 2
-            c.create_oval(x1 + 40, y1 + 210, x2 + 40, y2 + 210, outline='red', fill='red', tag='dot')
-        for dot in sett2:
-            x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
-            if x1 < 0 or x1 > 650 or y1 < 0 or y1 > 540:
-                raise
-            x2, y2 = x1 + 2, y1 + 2
-            x1 -= 2
-            y1 -= 2
-            c.create_oval(x1 + 40, y1 + 210, x2 + 40, y2 + 210, outline='blue', fill='blue', tag='dot')
+        xs = []
+        ys = []
+        for dot in sett:
+            x, y = map(float, dot.strip('\n').strip(')').strip('(').split(';'))
+            xs.append(abs(x))
+            ys.append(abs(y))
+        max_x, max_y = max(xs), max(ys)
+        scale(max_x, max_y)
     except:
-        box.showinfo('Error', 'Некорректные координаты!')
+        box.showinfo('Error', 'Некорректные координаты!2')
+        return
+
+
+    for dot in sett:
+        x, y = map(float, dot.strip('\n').strip(')').strip('(').split(';'))
+        x, y = net_to_canv(x, y)
+        x2, y2 = x + 2, y + 2
+        x -= 2
+        y -= 2
+        c.create_oval(round(x), round(y), round(x2), round(y2), outline='red', fill='red', tag='dot')
+
 
 def is_count_true(set1, set2, a, b, c):
     count1 = 0
@@ -158,8 +170,6 @@ def triang_find():
     dots_update()
     sett1 = text1.get(1.0, END).split(',')[:-1] if text1.get(1.0, END).split(',')[-1].strip() == '' \
         else text1.get(1.0, END).split(',')
-    sett2 = text2.get(1.0, END).split(',')[:-1] if text2.get(1.0, END).split(',')[-1].strip() == '' \
-        else text2.get(1.0, END).split(',')
 
     set1_t = []
     set2_t = []
@@ -168,9 +178,6 @@ def triang_find():
         x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
         set1_t.append((x1 + 40, y1 + 210))
 
-    for dot in sett2:
-        x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
-        set2_t.append((x1 + 40, y1 + 210))
 
     for i in range(len(set1_t) - 2):
         for j in range(i + 1, len(set1_t) - 1):
@@ -187,40 +194,48 @@ def text_and_labels_creation():
     scroll.pack(side=LEFT, fill=Y)
     text1.config(yscrollcommand=scroll.set)
 
-    text2.place(x=445, y=33)
-    scroll = Scrollbar(command=text2.yview)
-    scroll.pack(side=RIGHT, fill=Y)
-    text2.config(yscrollcommand=scroll.set)
-
-    label1 = Label(text='Точки первого множества:', font='Arial 15')
-    label2 = Label(text='Точки второго множества:', font='Arial 15')
+    label1 = Label(text='Множество точек:', font='Arial 15')
     label1.place(x=13, y=5)
-    label2.place(x=440, y=5)
 
 def buttons_creation():
-    btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
+    btn_upd = Button(root, text='🔄', fg='green', command=lambda: dots_update())
+    btn_add = Button(root, text='добавить', fg='green', command=lambda: add_dot())
     btn_tri = Button(root, text='найти ΔΔ', fg='blue', command=lambda: triang_find())
     btn_cl_tri = Button(root, text='🗑ΔΔ', fg='orange', command=lambda: clean_tri())
     btn_cl_all = Button(root, text='🗑всё', fg='orange', command=lambda: clean_all())
     btn_exit = Button(root, text=' выход ', fg='red', command=exit)
     btn_cl_tri.place(x=290, y=140)
+    btn_add.place(x=220, y=180)
     btn_cl_all.place(x=365, y=140)
-    btn_upd.place(x=310, y=80)
+    btn_upd.place(x=290, y=180)
     btn_tri.place(x=327, y=110)
     btn_exit.place(x=650, y=840)
 
-def net_to_canv(x, y):
+def scale(x, y):
     global sz
     prev_sz = sz
     center = (365, 510)
-    while x > -150*sz and x < 150*sz and y > -150*sz and y < 150*sz:
+    while x > -150 * sz and x < 150 * sz and y > -150 * sz and y < 150 * sz:
         sz /= 2
 
-    while x < -300*sz or x > 300*sz or y < -300*sz or y > 300*sz:
+    while x < -300 * sz or x > 300 * sz or y < -300 * sz or y > 300 * sz:
         sz *= 2
 
     if sz != prev_sz:
-        redraw_coords()
+        redraw()
+
+def net_to_canv(x, y):
+    global sz
+    # prev_sz = sz
+    center = (365, 510)
+    # while x > -150*sz and x < 150*sz and y > -150*sz and y < 150*sz:
+    #     sz /= 2
+    #
+    # while x < -300*sz or x > 300*sz or y < -300*sz or y > 300*sz:
+    #     sz *= 2
+    #
+    # if sz != prev_sz:
+    #     redraw()
 
     return round(x/sz + center[0]), round(center[1] - y/sz)
 
@@ -228,16 +243,21 @@ def canv_to_net(x, y):
     global sz
     center = (365, 510)
 
-    return round(x/sz - center[0]), round(center[1] - y/sz)
+    return round((x - center[0])*sz, 3), round((center[1] - y)*sz, 3)
 
-def redraw_coords():
+def redraw():
     global sz
     clean_coords()
-    for i in range(65, 750, 50):
-        c.create_text(i, 530, text=f'{round((i - 365)*sz)}' if i - 365 else '')
+    max_len = 0
+    for i in range(65, 670, 50):
+        if len(f'{round((i - 365)*sz, 3):g}') > max_len:
+            max_len = len(f'{round((i - 365)*sz, 3):g}')
+
+    for i in range(65, 670, 50):
+        c.create_text(i, 530, text=f'{round((i - 365)*sz, 3):g}' if i - 365 else '', tag='coord', font='Verdana 8' if max_len > 6 else 'Verdana 12')
 
     for i in range(210, 820, 50):
-        c.create_text(345, i + 10, text=f'{round(-(i - 510)*sz)}' if i - 510 else '')
+        c.create_text(345, i + 10, text=f'{round(-(i - 510)*sz, 3):g}' if i - 510 else '', tag='coord')
 
 def coordinate_field_creation():
     c.create_line(33, 510, 690, 510, fill='black',
@@ -258,6 +278,9 @@ def coordinate_field_creation():
                   width=1, dash=(5, 9))
     c.create_text(355, 520, text='0')
 
+    c.create_text(10, 190, text='X:')
+    c.create_text(110, 190, text='Y:')
+
     for i in range(65, 750, 50):
         c.create_line(i, 503, i, 520, fill='black', width=2)
         c.create_line(i, 210, i, 810, fill='black', width=1, dash=(1, 9))
@@ -270,14 +293,6 @@ def coordinate_field_creation():
 
     c.create_text(688, 498, text='X', font='Verdana 20', fill='green')
     c.create_text(380, 195, text='Y', font='Verdana 20', fill='green')
-    c.create_text(348, 25, text='Выбирать на поле точки:', font='Verdana 10')
-
-def radiobutton_creation():
-    var.set(0)
-    set0 = Radiobutton(text="1-го мн-ва", fg='red', variable=var, value=0)
-    set1 = Radiobutton(text="2-го мн-ва", fg='blue', variable=var, value=1)
-    set0.place(x=290, y=33)
-    set1.place(x=290, y=55)
 
 
 c.bind('<1>', click)
@@ -285,6 +300,9 @@ c.bind('<1>', click)
 text_and_labels_creation()
 buttons_creation()
 coordinate_field_creation()
-radiobutton_creation()
+
+# ent1.insert(0, '0')
+# ent2.insert(0, '0')
+
 c.pack()
 root.mainloop()
