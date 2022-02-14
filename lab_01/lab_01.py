@@ -7,7 +7,7 @@ var = IntVar()
 sz = 1
 
 combinations = []
-true_combs = []
+# true_combs = []
 c = Canvas(root, width=700, height=900, bg='white')
 c.create_rectangle(4, 32, 161, 172, outline='black', width=2)
 text1 = Text(width=21, height=10)
@@ -149,6 +149,8 @@ def dots_update():
 
 def is_dot_in_triang(dot, tri):
     a, b, c = tri
+    if a == dot or b == dot or c == dot:
+        return True
     x1, y1 = a
     x2, y2 = b
     x3, y3 = c
@@ -199,61 +201,107 @@ def form_all_triang_combinations(dots):
                 # combinations.insert(j, buf[1])
                 # combinations.insert(k, buf[2])
 
-def form_all_true_combinations(triangs):
-    if not len(triangs):
-        return
-
+def form_all_true_combinations(triangs, min_count):
+    # global true_combs
+    true_combs = []
     for i in range(len(triangs)):
-        a = triangs[:]
-        del a[i]
-        for tri in true_combs:
-            if not is_triangls_intesected(tri, triangs[i])
-        true_combs.append(triangs[i])
-        # del dots[i], dots[j], dots[k]
-        form_all_true_combinations(a)
-        # combinations.insert(i, buf[0])
-        # combinations.insert(j, buf[1])
-        # combinations.insert(k, buf[2])
+        cur_comb = []
+        cur_comb.append(triangs[i])
+        for j in range(i + 1, len(triangs)):
+            if not is_triangls_intesected(triangs[j], triangs[i]):
+                cur_comb.append(triangs[j])
 
-def triang_find_and_draw(check=1):
-    global combinations
-    # dots_update()
-    sett = text1.get(1.0, END).split('\n')[:-1]
+        if len(cur_comb) >= min_count:
+            true_combs.append(cur_comb)
 
-    if not sett[-1]:
-        sett = sett[:-1]
-
-    if check:
-        if len(sett) % 3:
-            box.showinfo('Error', 'Число точек должно быть кратно 3м!')
-            return
-
-        set1_t = []
-        for dot in sett:
-            x1, y1 = map(float, dot.strip('\n').strip(')').strip('(').split(';'))
-            set1_t.append((x1, y1))
-
-        combinations = []
-        form_all_triang_combinations(set1_t)
-        print(len(combinations), combinations)
+    return true_combs
 
 
-    # for i in range(len(combinations) - 1):
-    #     for j in range(i + 1, len(combinations)):
-    #         if not is_triangls_intesected(combinations[i], combinations[j]):
-    #             true_combs.append()
+    # if not len(triangs):
+    #     return
+    #
+    # for i in range(len(triangs)):
+    #     a = triangs[:]
+    #     del a[i]
+    #     for tri in true_combs:
+    #         if not is_triangls_intesected(tri, triangs[i])
+    #     true_combs.append(triangs[i])
+    #     # del dots[i], dots[j], dots[k]
+    #     form_all_true_combinations(a)
+    #     # combinations.insert(i, buf[0])
+    #     # combinations.insert(j, buf[1])
+    #     # combinations.insert(k, buf[2])
 
-        for tri in combinations:
-            draw_triang(tri)
+def triang_find_and_draw():
+    dots_update()
+    sett1 = text1.get(1.0, END).split(',')[:-1] if text1.get(1.0, END).split(',')[-1].strip() == '' \
+        else text1.get(1.0, END).split(',')
+    # sett2 = text2.get(1.0, END).split(',')[:-1] if text2.get(1.0, END).split(',')[-1].strip() == '' \
+    #     else text2.get(1.0, END).split(',')
+
+    set1_t = []
+    set2_t = []
+
+    for dot in sett1:
+        x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
+        set1_t.append((x1 + 40, y1 + 210))
+
+    # for dot in sett2:
+    #     x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
+    #     set2_t.append((x1 + 40, y1 + 210))
 
     # for i in range(len(set1_t) - 2):
     #     for j in range(i + 1, len(set1_t) - 1):
     #         for k in range(j + 1, len(set1_t)):
-    #             # a = set1_t[:]
-    #             # del a[i], a[j - 1], a[k - 2]
-    #             if is_dot_in_triang(a, set1_t[i], set1_t[j], set1_t[k]):
+    #             a = set1_t[:]
+    #             del a[i], a[j - 1], a[k - 2]
+    #             if is_count_true(a, set2_t, set1_t[i], set1_t[j], set1_t[k]):
     #                 c.create_line(set1_t[i], set1_t[j], set1_t[k], set1_t[i], fill='green', width=2,
     #                               activefill='lightgreen', tag='triang')
+
+# def triang_find_and_draw(check=1):
+#     global combinations
+#     # dots_update()
+#     sett = text1.get(1.0, END).split('\n')[:-1]
+#
+#     if not sett[-1]:
+#         sett = sett[:-1]
+#
+#     if check:
+#         if len(sett) % 3:
+#             box.showinfo('Error', 'Число точек должно быть кратно 3м!')
+#             return
+#
+#         set1_t = []
+#         for dot in sett:
+#             x1, y1 = map(float, dot.strip('\n').strip(')').strip('(').split(';'))
+#             set1_t.append((x1, y1))
+#
+#         combinations = []
+#         form_all_triang_combinations(set1_t)
+#         print(len(combinations), combinations)
+#
+#         true_combs = form_all_true_combinations(combinations, len(sett)//3)
+#
+#         print(len(true_combs), true_combs)
+#
+#
+#     # for i in range(len(combinations) - 1):
+#     #     for j in range(i + 1, len(combinations)):
+#     #         if not is_triangls_intesected(combinations[i], combinations[j]):
+#     #             true_combs.append()
+#
+#         for tri in true_combs[0]:
+#             draw_triang(tri)
+#
+#     # for i in range(len(set1_t) - 2):
+#     #     for j in range(i + 1, len(set1_t) - 1):
+#     #         for k in range(j + 1, len(set1_t)):
+#     #             # a = set1_t[:]
+#     #             # del a[i], a[j - 1], a[k - 2]
+#     #             if is_dot_in_triang(a, set1_t[i], set1_t[j], set1_t[k]):
+#     #                 c.create_line(set1_t[i], set1_t[j], set1_t[k], set1_t[i], fill='green', width=2,
+#     #                               activefill='lightgreen', tag='triang')
 
 def text_and_labels_creation():
     text1.place(x=20, y=33)
@@ -293,16 +341,7 @@ def scale(x, y):
 
 def net_to_canv(x, y):
     global sz
-    # prev_sz = sz
     center = (365, 510)
-    # while x > -150*sz and x < 150*sz and y > -150*sz and y < 150*sz:
-    #     sz /= 2
-    #
-    # while x < -300*sz or x > 300*sz or y < -300*sz or y > 300*sz:
-    #     sz *= 2
-    #
-    # if sz != prev_sz:
-    #     redraw()
 
     return round(x/sz + center[0]), round(center[1] - y/sz)
 
