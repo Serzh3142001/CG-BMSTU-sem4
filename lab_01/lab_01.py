@@ -6,7 +6,8 @@ var = IntVar()
 
 sz = 1
 
-
+combinations = []
+true_combs = []
 c = Canvas(root, width=700, height=900, bg='white')
 c.create_rectangle(4, 32, 161, 172, outline='black', width=2)
 text1 = Text(width=21, height=10)
@@ -30,6 +31,7 @@ def clean_all():
     for dot in dotts:
         c.delete(dot)
     text1.delete(1.0, END)
+    clean_tri()
 
 def add_dot():
     d1 = ent1.get()
@@ -80,8 +82,9 @@ def is_cursor_touch_triang(tri, event):
         return 0
 
 def click(event):
-    if event.x >= 4 and event.y >= 32 and event.x <= 161 and event.y <= 172:
-        select_all()
+    # print(text1.index(INSERT))
+    # if event.x >= 4 and event.y >= 32 and event.x <= 161 and event.y <= 172:
+    #     select_all()
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
 
@@ -114,6 +117,7 @@ def dots_update():
         sett = sett[:-1]
 
     dotts = c.find_withtag('dot')
+    clean_tri()
 
     for dot in dotts:
         c.delete(dot)
@@ -140,53 +144,116 @@ def dots_update():
         y -= 2
         c.create_oval(round(x), round(y), round(x2), round(y2), outline='red', fill='red', tag='dot')
 
+    triang_find_and_draw(0)
 
-def is_count_true(set1, set2, a, b, c):
-    count1 = 0
-    count2 = 0
+
+def is_dot_in_triang(dot, tri):
+    a, b, c = tri
     x1, y1 = a
     x2, y2 = b
     x3, y3 = c
 
-    for dot in set1:
-        x0, y0 = dot
-        k1 = (x1 - x0) * (y2 - y1) - (x2 - x1) * (y1 - y0)
-        k2 = (x2 - x0) * (y3 - y2) - (x3 - x2) * (y2 - y0)
-        k3 = (x3 - x0) * (y1 - y3) - (x1 - x3) * (y3 - y0)
-        if k1 > 0 and k2 > 0 and k3 > 0 or k1 < 0 and k2 < 0 and k3 < 0:
-            count1 += 1
+    x0, y0 = dot
+    k1 = (x1 - x0) * (y2 - y1) - (x2 - x1) * (y1 - y0)
+    k2 = (x2 - x0) * (y3 - y2) - (x3 - x2) * (y2 - y0)
+    k3 = (x3 - x0) * (y1 - y3) - (x1 - x3) * (y3 - y0)
+    if k1 > 0 and k2 > 0 and k3 > 0 or k1 < 0 and k2 < 0 and k3 < 0:
+        return True
 
-    for dot in set2:
-        x0, y0 = dot
-        k1 = (x1 - x0) * (y2 - y1) - (x2 - x1) * (y1 - y0)
-        k2 = (x2 - x0) * (y3 - y2) - (x3 - x2) * (y2 - y0)
-        k3 = (x3 - x0) * (y1 - y3) - (x1 - x3) * (y3 - y0)
-        if k1 > 0 and k2 > 0 and k3 > 0 or k1 < 0 and k2 < 0 and k3 < 0:
-            count2 += 1
-
-    return count1 == count2 and count1
-
-def triang_find():
-    dots_update()
-    sett1 = text1.get(1.0, END).split(',')[:-1] if text1.get(1.0, END).split(',')[-1].strip() == '' \
-        else text1.get(1.0, END).split(',')
-
-    set1_t = []
-    set2_t = []
-
-    for dot in sett1:
-        x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
-        set1_t.append((x1 + 40, y1 + 210))
+    return False
 
 
-    for i in range(len(set1_t) - 2):
-        for j in range(i + 1, len(set1_t) - 1):
-            for k in range(j + 1, len(set1_t)):
-                a = set1_t[:]
-                del a[i], a[j - 1], a[k - 2]
-                if is_count_true(a, set2_t, set1_t[i], set1_t[j], set1_t[k]):
-                    c.create_line(set1_t[i], set1_t[j], set1_t[k], set1_t[i], fill='green', width=2,
+def is_triangls_intesected(tri1, tri2):
+    for i in range(3):
+        if is_dot_in_triang(tri1[i], tri2):
+            return True
+
+    for i in range(3):
+        if is_dot_in_triang(tri2[i], tri1):
+            return True
+
+    return False
+
+def draw_triang(tri):
+    buf_tr = []
+    for i in range(3):
+        buf_tr.append(net_to_canv(tri[i][0], tri[i][1]))
+
+    c.create_line(buf_tr[0], buf_tr[1], buf_tr[2], buf_tr[0], fill='green', width=2,
                                   activefill='lightgreen', tag='triang')
+
+def form_all_triang_combinations(dots):
+    if not len(dots):
+        return
+
+    for i in range(len(dots) - 2):
+        for j in range(i + 1, len(dots) - 1):
+            for k in range(j + 1, len(dots)):
+                a = dots[:]
+                del a[i], a[j - 1], a[k - 2]
+                buf = (dots[i], dots[j], dots[k])
+                combinations.append(buf)
+                # del dots[i], dots[j], dots[k]
+                form_all_triang_combinations(a)
+                # combinations.insert(i, buf[0])
+                # combinations.insert(j, buf[1])
+                # combinations.insert(k, buf[2])
+
+def form_all_true_combinations(triangs):
+    if not len(triangs):
+        return
+
+    for i in range(len(triangs)):
+        a = triangs[:]
+        del a[i]
+        for tri in true_combs:
+            if not is_triangls_intesected(tri, triangs[i])
+        true_combs.append(triangs[i])
+        # del dots[i], dots[j], dots[k]
+        form_all_true_combinations(a)
+        # combinations.insert(i, buf[0])
+        # combinations.insert(j, buf[1])
+        # combinations.insert(k, buf[2])
+
+def triang_find_and_draw(check=1):
+    global combinations
+    # dots_update()
+    sett = text1.get(1.0, END).split('\n')[:-1]
+
+    if not sett[-1]:
+        sett = sett[:-1]
+
+    if check:
+        if len(sett) % 3:
+            box.showinfo('Error', 'Число точек должно быть кратно 3м!')
+            return
+
+        set1_t = []
+        for dot in sett:
+            x1, y1 = map(float, dot.strip('\n').strip(')').strip('(').split(';'))
+            set1_t.append((x1, y1))
+
+        combinations = []
+        form_all_triang_combinations(set1_t)
+        print(len(combinations), combinations)
+
+
+    # for i in range(len(combinations) - 1):
+    #     for j in range(i + 1, len(combinations)):
+    #         if not is_triangls_intesected(combinations[i], combinations[j]):
+    #             true_combs.append()
+
+        for tri in combinations:
+            draw_triang(tri)
+
+    # for i in range(len(set1_t) - 2):
+    #     for j in range(i + 1, len(set1_t) - 1):
+    #         for k in range(j + 1, len(set1_t)):
+    #             # a = set1_t[:]
+    #             # del a[i], a[j - 1], a[k - 2]
+    #             if is_dot_in_triang(a, set1_t[i], set1_t[j], set1_t[k]):
+    #                 c.create_line(set1_t[i], set1_t[j], set1_t[k], set1_t[i], fill='green', width=2,
+    #                               activefill='lightgreen', tag='triang')
 
 def text_and_labels_creation():
     text1.place(x=20, y=33)
@@ -200,7 +267,7 @@ def text_and_labels_creation():
 def buttons_creation():
     btn_upd = Button(root, text='🔄', fg='green', command=lambda: dots_update())
     btn_add = Button(root, text='добавить', fg='green', command=lambda: add_dot())
-    btn_tri = Button(root, text='найти ΔΔ', fg='blue', command=lambda: triang_find())
+    btn_tri = Button(root, text='найти ΔΔ', fg='blue', command=lambda: triang_find_and_draw())
     btn_cl_tri = Button(root, text='🗑ΔΔ', fg='orange', command=lambda: clean_tri())
     btn_cl_all = Button(root, text='🗑всё', fg='orange', command=lambda: clean_all())
     btn_exit = Button(root, text=' выход ', fg='red', command=exit)
