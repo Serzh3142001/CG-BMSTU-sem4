@@ -3,6 +3,7 @@ import tkinter.messagebox as box
 
 root = Tk()
 var = IntVar()
+story = []
 c = Canvas(root, width=700, height=900, bg='white')
 c.create_rectangle(4, 32, 266, 172, outline='black', width=2)
 c.create_rectangle(429, 32, 691, 172, outline='black', width=2)
@@ -16,6 +17,10 @@ ent3 = Entry(width=8)
 ent4 = Entry(width=8)
 ent3.place(x=460, y=177)
 ent4.place(x=560, y=177)
+# ent5 = Entry(width=8)
+# ent6 = Entry(width=8)
+# ent5.place(x=280, y=852)
+# ent6.place(x=380, y=852)
 sz = 1
 flag1 = 0
 flag2 = 0
@@ -34,6 +39,16 @@ def clean_all():
         c.delete(dot)
     text1.delete(1.0, END)
     text2.delete(1.0, END)
+    ent1.delete(0, END)
+    ent2.delete(0, END)
+    ent3.delete(0, END)
+    ent4.delete(0, END)
+    # ent5.delete(0, END)
+    # ent6.delete(0, END)
+    tc = c.find_withtag('tc')
+    for tc1 in tc:
+        c.delete(tc1)
+
 
 def clean_coords():
     coords = c.find_withtag('coord')
@@ -91,8 +106,38 @@ def is_cursor_touch_triang(tri, event):
     else:
         return 0
 
+def is_cursor_touch_dot(dot, event):
+    coo = c.coords(dot)
+
+    x, y = event.x, event.y
+
+    if coo[0] <= x <= coo[0] + 4 and coo[1] <= y <= coo[1] + 4:
+        return 1
+    else:
+        return 0
+
+
 def click(event):
     global flag1, flag2
+
+    # dotts = c.find_withtag('dot')
+    # for dot in dotts:
+    #     if is_cursor_touch_dot(dot, event):
+    #         ent5.delete(0, END)
+    #         ent6.delete(0, END)
+    #
+    #         tc = c.find_withtag('tc')
+    #         for tc1 in tc:
+    #             c.delete(tc1)
+    #
+    #         true_c = canv_to_net(c.coords(dot)[0], c.coords(dot)[1])
+    #         ent5.insert(0, f'{true_c[0]+2:g}')
+    #         ent6.insert(0, f'{true_c[1]-2:g}')
+    #         c.create_text(298, 842, text=f'{true_c[0]+2:g}', tag='tc')
+    #         c.create_text(388, 842, text=f'{true_c[1]-2:g}', tag='tc')
+    #         # print(dot, c.coords(dot), event.x, event.y)
+    #         return
+
     triangls = c.find_withtag('triang')
     for tri in triangls:
         if is_cursor_touch_triang(tri, event):
@@ -270,6 +315,7 @@ def triang_find_and_draw():
     # sett2 = text2.get(1.0, END).split(',')[:-1] if text2.get(1.0, END).split(',')[-1].strip() == '' \
     #     else text2.get(1.0, END).split(',')
 
+    draw_fl =  0
     sett1 = text1.get(1.0, END).split('\n')[:-1]
     if not sett1[-1]:
         sett1 = sett1[:-1]
@@ -300,6 +346,10 @@ def triang_find_and_draw():
                                   net_to_canv(set1_t[k][0], set1_t[k][1]),
                                   net_to_canv(set1_t[i][0], set1_t[i][1]), fill='green', width=2,
                                   activefill='lightgreen', tag='triang')
+                    draw_fl += 1
+
+    if not draw_fl:
+        box.showinfo('Error', 'Треугольники не найдены')
 
 def text_and_labels_creation():
     text1.place(x=20, y=33)
@@ -320,6 +370,8 @@ def text_and_labels_creation():
 
 def buttons_creation():
     btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
+    # btn_edit = Button(root, text='изменить', fg='green', command=lambda: dots_update())
+    # btn_del = Button(root, text='удалить', fg='red', command=lambda: dots_update())
     # btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
     btn_add1 = Button(root, text='добавить', fg='red', command=lambda: add_dot(1))
     btn_add2 = Button(root, text='добавить', fg='blue', command=lambda: add_dot(2))
@@ -332,6 +384,8 @@ def buttons_creation():
     btn_add2.place(x=648, y=180)
     btn_cl_all.place(x=365, y=140)
     btn_upd.place(x=310, y=80)
+    # btn_del.place(x=470, y=855)
+    # btn_edit.place(x=470, y=830)
     # btn_upd.place(x=310, y=80)
     btn_tri.place(x=327, y=110)
     btn_exit.place(x=650, y=840)
@@ -359,6 +413,10 @@ def coordinate_field_creation():
     c.create_text(110, 190, text='Y:')
     c.create_text(438, 190, text='X:')
     c.create_text(538, 190, text='Y:')
+    # c.create_text(258, 867, text='X:')
+    # c.create_text(358, 867, text='Y:')
+    # c.create_text(272, 842, text='X:')
+    # c.create_text(358, 842, text='Y:')
 
     for i in range(65, 750, 50):
         c.create_line(i, 503, i, 520, fill='black', width=2)
