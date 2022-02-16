@@ -20,18 +20,16 @@ ent3.place(x=460, y=177)
 ent4.place(x=560, y=177)
 TASK = 'Даны два множества точек на плоскости. Из первого множества выбрать три различные точки так, чтобы треугольник с вершинами в этих точках содержал (строго внутри себя) равное количество точек первого и второго множеств.'
 AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
-# ent5 = Entry(width=8)
-# ent6 = Entry(width=8)
-# ent5.place(x=280, y=852)
-# ent6.place(x=380, y=852)
 sz = 1
 flag1 = 0
 flag2 = 0
+
 
 def clean_tri():
     triangls = c.find_withtag('triang')
     for tri in triangls:
         c.delete(tri)
+
 
 def clean_all():
     global flag1, flag2
@@ -46,8 +44,6 @@ def clean_all():
     ent2.delete(0, END)
     ent3.delete(0, END)
     ent4.delete(0, END)
-    # ent5.delete(0, END)
-    # ent6.delete(0, END)
     tc = c.find_withtag('tc')
     for tc1 in tc:
         c.delete(tc1)
@@ -58,11 +54,13 @@ def clean_coords():
     for cor in coords:
         c.delete(cor)
 
+
 def tri_click(event, tag):
     triangls = list(c.find_withtag('triang'))
     triangls.remove(tag)
     for tri in triangls:
         c.delete(tri)
+
 
 def add_dot(num):
     if num == 1:
@@ -83,6 +81,7 @@ def add_dot(num):
         dots_update()
     except:
         box.showinfo('Error', 'Некорректные координаты!')
+
 
 def is_cursor_touch_triang(tri, event):
     coo = c.coords(tri)[:-2]
@@ -109,6 +108,7 @@ def is_cursor_touch_triang(tri, event):
     else:
         return 0
 
+
 def is_cursor_touch_dot(dot, event):
     coo = c.coords(dot)
 
@@ -122,24 +122,6 @@ def is_cursor_touch_dot(dot, event):
 
 def click(event):
     global flag1, flag2
-
-    # dotts = c.find_withtag('dot')
-    # for dot in dotts:
-    #     if is_cursor_touch_dot(dot, event):
-    #         ent5.delete(0, END)
-    #         ent6.delete(0, END)
-    #
-    #         tc = c.find_withtag('tc')
-    #         for tc1 in tc:
-    #             c.delete(tc1)
-    #
-    #         true_c = canv_to_net(c.coords(dot)[0], c.coords(dot)[1])
-    #         ent5.insert(0, f'{true_c[0]+2:g}')
-    #         ent6.insert(0, f'{true_c[1]-2:g}')
-    #         c.create_text(298, 842, text=f'{true_c[0]+2:g}', tag='tc')
-    #         c.create_text(388, 842, text=f'{true_c[1]-2:g}', tag='tc')
-    #         # print(dot, c.coords(dot), event.x, event.y)
-    #         return
 
     triangls = c.find_withtag('triang')
     for tri in triangls:
@@ -180,6 +162,7 @@ def click(event):
         story[-1] += f'; text1.delete({end}.0, END)'
         story[-1] += '; text1.insert(END, "\\n")' if end > 1 else ''
 
+
 def print_dot(event):
     x1, y1 = (event.x - 2), (event.y - 2)
     x2, y2 = (event.x + 2), (event.y + 2)
@@ -188,12 +171,8 @@ def print_dot(event):
     else:
         c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='dot')
 
-def dots_update():
-    # sett1 = text1.get(1.0, END).split(',')[:-1] if text1.get(1.0, END).split(',')[-1].strip() == '' \
-    #     else text1.get(1.0, END).split(',')
-    # sett2 = text2.get(1.0, END).split(',')[:-1] if text2.get(1.0, END).split(',')[-1].strip() == '' \
-    #     else text2.get(1.0, END).split(',')
 
+def dots_update():
     sett1 = text1.get(1.0, END).split('\n')[:-1]
 
     if not sett1[-1]:
@@ -244,25 +223,6 @@ def dots_update():
         y -= 2
         c.create_oval(round(x), round(y), round(x2), round(y2), outline='blue', fill='blue', tag='dot')
 
-    # try:
-    #     for dot in sett1:
-    #         x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
-    #         if x1 < 0 or x1 > 650 or y1 < 0 or y1 > 540:
-    #             raise
-    #         x2, y2 = x1 + 2, y1 + 2
-    #         x1 -= 2
-    #         y1 -= 2
-    #         c.create_oval(x1 + 40, y1 + 210, x2 + 40, y2 + 210, outline='red', fill='red', tag='dot')
-    #     for dot in sett2:
-    #         x1, y1 = map(int, dot.strip(' ').strip('\n').strip(')').strip('(').split(';'))
-    #         if x1 < 0 or x1 > 650 or y1 < 0 or y1 > 540:
-    #             raise
-    #         x2, y2 = x1 + 2, y1 + 2
-    #         x1 -= 2
-    #         y1 -= 2
-    #         c.create_oval(x1 + 40, y1 + 210, x2 + 40, y2 + 210, outline='blue', fill='blue', tag='dot')
-    # except:
-    #     box.showinfo('Error', 'Некорректные координаты!')
 
 def net_to_canv(x, y):
     global sz
@@ -270,11 +230,13 @@ def net_to_canv(x, y):
 
     return round(x/sz + center[0]), round(center[1] - y/sz)
 
+
 def canv_to_net(x, y):
     global sz
     center = (365, 510)
 
     return round((x - center[0])*sz, 3), round((center[1] - y)*sz, 3)
+
 
 def back():
     if not len(story):
@@ -287,15 +249,13 @@ def back():
     else:
         commands.append(command)
 
-
-    # print(story[-1])
-
     for com in commands:
         if not com:
             continue
         eval(com)
 
     del story[-1]
+
 
 def scale(x, y):
     global sz
@@ -326,6 +286,7 @@ def redraw():
     for i in range(210, 820, 50):
         c.create_text(345, i + 10, text=f'{round(-(i - 510)*sz, 3):g}' if i - 510 else '', tag='coord')
 
+
 def is_count_true(set1, set2, a, b, c):
     count1 = 0
     count2 = 0
@@ -351,12 +312,9 @@ def is_count_true(set1, set2, a, b, c):
 
     return count1 == count2 and count1
 
+
 def triang_find_and_draw():
     dots_update()
-    # sett1 = text1.get(1.0, END).split(',')[:-1] if text1.get(1.0, END).split(',')[-1].strip() == '' \
-    #     else text1.get(1.0, END).split(',')
-    # sett2 = text2.get(1.0, END).split(',')[:-1] if text2.get(1.0, END).split(',')[-1].strip() == '' \
-    #     else text2.get(1.0, END).split(',')
 
     draw_fl =  0
     sett1 = text1.get(1.0, END).split('\n')[:-1]
@@ -391,8 +349,6 @@ def triang_find_and_draw():
                                   activefill='lightgreen', tag='triang')
                     draw_fl += 1
 
-
-
     if not draw_fl:
         box.showinfo('Error', 'Треугольники не найдены')
         return
@@ -401,6 +357,7 @@ def triang_find_and_draw():
     story.append('')
     for tri in tris:
         story[-1] += f'c.delete({tri});'
+
 
 def text_and_labels_creation():
     text1.place(x=20, y=33)
@@ -419,11 +376,9 @@ def text_and_labels_creation():
     label1.place(x=13, y=5)
     label2.place(x=440, y=5)
 
+
 def buttons_creation():
     btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
-    # btn_edit = Button(root, text='изменить', fg='green', command=lambda: dots_update())
-    # btn_del = Button(root, text='удалить', fg='red', command=lambda: dots_update())
-    # btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
     btn_add1 = Button(root, text='добавить', fg='red', command=lambda: add_dot(1))
     btn_back = Button(root, text='назад', fg='purple', command=lambda: back())
     btn_add2 = Button(root, text='добавить', fg='blue', command=lambda: add_dot(2))
@@ -437,11 +392,9 @@ def buttons_creation():
     btn_cl_all.place(x=365, y=140)
     btn_upd.place(x=310, y=80)
     btn_back.place(x=315, y=175)
-    # btn_del.place(x=470, y=855)
-    # btn_edit.place(x=470, y=830)
-    # btn_upd.place(x=310, y=80)
     btn_tri.place(x=327, y=110)
     btn_exit.place(x=650, y=840)
+
 
 def coordinate_field_creation():
     c.create_line(33, 510, 690, 510, fill='black',
@@ -466,10 +419,6 @@ def coordinate_field_creation():
     c.create_text(110, 190, text='Y:')
     c.create_text(438, 190, text='X:')
     c.create_text(538, 190, text='Y:')
-    # c.create_text(258, 867, text='X:')
-    # c.create_text(358, 867, text='Y:')
-    # c.create_text(272, 842, text='X:')
-    # c.create_text(358, 842, text='Y:')
 
     for i in range(65, 750, 50):
         c.create_line(i, 503, i, 520, fill='black', width=2)
@@ -483,6 +432,7 @@ def coordinate_field_creation():
 
     c.create_text(688, 498, text='X', font='Verdana 20', fill='green')
     c.create_text(380, 195, text='Y', font='Verdana 20', fill='green')
+
 
 def radiobutton_creation():
     var.set(0)
@@ -500,7 +450,6 @@ coordinate_field_creation()
 radiobutton_creation()
 
 mmenu = Menu(root)
-
 add_menu = Menu(mmenu)
 add_menu.add_command(label='О программе и авторе',
                      command=lambda: messagebox.showinfo('О программе и авторе', TASK + AUTHOR))
