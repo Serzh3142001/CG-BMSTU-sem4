@@ -17,10 +17,10 @@ ent3 = Entry(width=8)
 ent4 = Entry(width=8)
 ent3.place(x=460, y=177)
 ent4.place(x=560, y=177)
-# ent5 = Entry(width=8)
-# ent6 = Entry(width=8)
-# ent5.place(x=280, y=852)
-# ent6.place(x=380, y=852)
+ent5 = Entry(width=8)
+ent6 = Entry(width=8)
+ent5.place(x=280, y=852)
+ent6.place(x=380, y=852)
 sz = 1
 flag1 = 0
 flag2 = 0
@@ -43,8 +43,8 @@ def clean_all():
     ent2.delete(0, END)
     ent3.delete(0, END)
     ent4.delete(0, END)
-    # ent5.delete(0, END)
-    # ent6.delete(0, END)
+    ent5.delete(0, END)
+    ent6.delete(0, END)
     tc = c.find_withtag('tc')
     for tc1 in tc:
         c.delete(tc1)
@@ -120,23 +120,23 @@ def is_cursor_touch_dot(dot, event):
 def click(event):
     global flag1, flag2
 
-    # dotts = c.find_withtag('dot')
-    # for dot in dotts:
-    #     if is_cursor_touch_dot(dot, event):
-    #         ent5.delete(0, END)
-    #         ent6.delete(0, END)
-    #
-    #         tc = c.find_withtag('tc')
-    #         for tc1 in tc:
-    #             c.delete(tc1)
-    #
-    #         true_c = canv_to_net(c.coords(dot)[0], c.coords(dot)[1])
-    #         ent5.insert(0, f'{true_c[0]+2:g}')
-    #         ent6.insert(0, f'{true_c[1]-2:g}')
-    #         c.create_text(298, 842, text=f'{true_c[0]+2:g}', tag='tc')
-    #         c.create_text(388, 842, text=f'{true_c[1]-2:g}', tag='tc')
-    #         # print(dot, c.coords(dot), event.x, event.y)
-    #         return
+    dotts = c.find_withtag('dot')
+    for dot in dotts:
+        if is_cursor_touch_dot(dot, event):
+            ent5.delete(0, END)
+            ent6.delete(0, END)
+
+            tc = c.find_withtag('tc')
+            for tc1 in tc:
+                c.delete(tc1)
+
+            true_c = canv_to_net(c.coords(dot)[0], c.coords(dot)[1])
+            ent5.insert(0, f'{true_c[0]+2:g}')
+            ent6.insert(0, f'{true_c[1]-2:g}')
+            c.create_text(298, 842, text=f'{true_c[0]+2:g}', tag='tc')
+            c.create_text(388, 842, text=f'{true_c[1]-2:g}', tag='tc')
+            # print(dot, c.coords(dot), event.x, event.y)
+            return
 
     triangls = c.find_withtag('triang')
     for tri in triangls:
@@ -370,8 +370,8 @@ def text_and_labels_creation():
 
 def buttons_creation():
     btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
-    # btn_edit = Button(root, text='изменить', fg='green', command=lambda: dots_update())
-    # btn_del = Button(root, text='удалить', fg='red', command=lambda: dots_update())
+    btn_edit = Button(root, text='изменить', fg='green', command=lambda: dots_update())
+    btn_del = Button(root, text='удалить', fg='red', command=lambda: dots_update())
     # btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
     btn_add1 = Button(root, text='добавить', fg='red', command=lambda: add_dot(1))
     btn_add2 = Button(root, text='добавить', fg='blue', command=lambda: add_dot(2))
@@ -384,8 +384,8 @@ def buttons_creation():
     btn_add2.place(x=648, y=180)
     btn_cl_all.place(x=365, y=140)
     btn_upd.place(x=310, y=80)
-    # btn_del.place(x=470, y=855)
-    # btn_edit.place(x=470, y=830)
+    btn_del.place(x=470, y=855)
+    btn_edit.place(x=470, y=830)
     # btn_upd.place(x=310, y=80)
     btn_tri.place(x=327, y=110)
     btn_exit.place(x=650, y=840)
@@ -413,10 +413,10 @@ def coordinate_field_creation():
     c.create_text(110, 190, text='Y:')
     c.create_text(438, 190, text='X:')
     c.create_text(538, 190, text='Y:')
-    # c.create_text(258, 867, text='X:')
-    # c.create_text(358, 867, text='Y:')
-    # c.create_text(272, 842, text='X:')
-    # c.create_text(358, 842, text='Y:')
+    c.create_text(258, 867, text='X:')
+    c.create_text(358, 867, text='Y:')
+    c.create_text(272, 842, text='X:')
+    c.create_text(358, 842, text='Y:')
 
     for i in range(65, 750, 50):
         c.create_line(i, 503, i, 520, fill='black', width=2)
