@@ -76,8 +76,24 @@ def add_dot(num):
 
         if num == 1:
             text1.insert(END, f'({d1:g}; {d2:g})\n')
+
+            story.append('')
+            sett1 = text1.get(1.0, END).split('\n')[:-1]
+            if not sett1[-1]:
+                sett1 = sett1[:-1]
+            end = len(sett1)
+            story[-1] += f'text1.delete({end}.0, END)'
+            story[-1] += '; text1.insert(END, "\\n")' if end > 1 else ''
         else:
             text2.insert(END, f'({d1:g}; {d2:g})\n')
+
+            story.append('')
+            sett2 = text2.get(1.0, END).split('\n')[:-1]
+            if not sett2[-1]:
+                sett2 = sett2[:-1]
+            end = len(sett2)
+            story[-1] += f'text2.delete({end}.0, END)'
+            story[-1] += '; text2.insert(END, "\\n")' if end > 1 else ''
         dots_update()
     except:
         box.showinfo('Error', 'Некорректные координаты!')
