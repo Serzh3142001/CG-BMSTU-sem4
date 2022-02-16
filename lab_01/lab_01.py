@@ -1,5 +1,6 @@
 from tkinter import *
 import tkinter.messagebox as box
+from tkinter import messagebox
 
 root = Tk()
 var = IntVar()
@@ -17,6 +18,8 @@ ent3 = Entry(width=8)
 ent4 = Entry(width=8)
 ent3.place(x=460, y=177)
 ent4.place(x=560, y=177)
+TASK = 'Даны два множества точек на плоскости. Из первого множества выбрать три различные точки так, чтобы треугольник с вершинами в этих точках содержал (строго внутри себя) равное количество точек первого и второго множеств.'
+AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
 # ent5 = Entry(width=8)
 # ent6 = Entry(width=8)
 # ent5.place(x=280, y=852)
@@ -79,7 +82,7 @@ def add_dot(num):
             text2.insert(END, f'({d1:g}; {d2:g})\n')
         dots_update()
     except:
-        box.showinfo('Error', 'Некорректные координаты!1')
+        box.showinfo('Error', 'Некорректные координаты!')
 
 def is_cursor_touch_triang(tri, event):
     coo = c.coords(tri)[:-2]
@@ -149,13 +152,33 @@ def click(event):
 
     print_dot(event)
 
+    dotts = c.find_withtag('dot')
+    story.append(f'c.delete({dotts[-1]})')
+    # c.delete(dotts[-1])
+
     crds = canv_to_net(event.x, event.y)
     if var.get():
         flag2 += 1
         text2.insert(END, f'({crds[0]:g}; {crds[1]:g})\n')
+
+        sett2 = text2.get(1.0, END).split('\n')[:-1]
+        if not sett2[-1]:
+            sett2 = sett2[:-1]
+
+        end = len(sett2)
+        story[-1] += f'; text2.delete({end}.0, END)'
+        story[-1] += '; text2.insert(END, "\\n")' if end > 1 else ''
     else:
         flag1 += 1
         text1.insert(END, f'({crds[0]:g}; {crds[1]:g})\n')
+
+        sett1 = text1.get(1.0, END).split('\n')[:-1]
+        if not sett1[-1]:
+            sett1 = sett1[:-1]
+
+        end = len(sett1)
+        story[-1] += f'; text1.delete({end}.0, END)'
+        story[-1] += '; text1.insert(END, "\\n")' if end > 1 else ''
 
 def print_dot(event):
     x1, y1 = (event.x - 2), (event.y - 2)
@@ -202,7 +225,7 @@ def dots_update():
         max_x, max_y = max(xs), max(ys)
         scale(max_x, max_y)
     except:
-        box.showinfo('Error', 'Некорректные координаты!2')
+        box.showinfo('Error', 'Некорректные координаты!')
         return
 
     for dot in sett1:
@@ -253,6 +276,26 @@ def canv_to_net(x, y):
 
     return round((x - center[0])*sz, 3), round((center[1] - y)*sz, 3)
 
+def back():
+    if not len(story):
+        return
+
+    command = story[-1]
+    commands = []
+    if ';' in command:
+        commands = command.split(';')
+    else:
+        commands.append(command)
+
+
+    # print(story[-1])
+
+    for com in commands:
+        if not com:
+            continue
+        eval(com)
+
+    del story[-1]
 
 def scale(x, y):
     global sz
@@ -348,8 +391,16 @@ def triang_find_and_draw():
                                   activefill='lightgreen', tag='triang')
                     draw_fl += 1
 
+
+
     if not draw_fl:
         box.showinfo('Error', 'Треугольники не найдены')
+        return
+
+    tris = c.find_withtag('triang')
+    story.append('')
+    for tri in tris:
+        story[-1] += f'c.delete({tri});'
 
 def text_and_labels_creation():
     text1.place(x=20, y=33)
@@ -374,6 +425,7 @@ def buttons_creation():
     # btn_del = Button(root, text='удалить', fg='red', command=lambda: dots_update())
     # btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
     btn_add1 = Button(root, text='добавить', fg='red', command=lambda: add_dot(1))
+    btn_back = Button(root, text='назад', fg='purple', command=lambda: back())
     btn_add2 = Button(root, text='добавить', fg='blue', command=lambda: add_dot(2))
     btn_tri = Button(root, text='найти ΔΔ', fg='blue', command=lambda: triang_find_and_draw())
     btn_cl_tri = Button(root, text='🗑ΔΔ', fg='orange', command=lambda: clean_tri())
@@ -384,6 +436,7 @@ def buttons_creation():
     btn_add2.place(x=648, y=180)
     btn_cl_all.place(x=365, y=140)
     btn_upd.place(x=310, y=80)
+    btn_back.place(x=315, y=175)
     # btn_del.place(x=470, y=855)
     # btn_edit.place(x=470, y=830)
     # btn_upd.place(x=310, y=80)
@@ -445,6 +498,15 @@ text_and_labels_creation()
 buttons_creation()
 coordinate_field_creation()
 radiobutton_creation()
+
+mmenu = Menu(root)
+
+add_menu = Menu(mmenu)
+add_menu.add_command(label='О программе и авторе',
+                     command=lambda: messagebox.showinfo('О программе и авторе', TASK + AUTHOR))
+add_menu.add_command(label='Выход', command=exit)
+mmenu.add_cascade(label='About', menu=add_menu)
+root.config(menu=mmenu)
 
 c.pack()
 root.mainloop()
