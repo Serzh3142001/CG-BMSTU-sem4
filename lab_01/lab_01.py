@@ -139,6 +139,20 @@ def is_cursor_touch_dot(dot, event):
 def click(event):
     global flag1, flag2
 
+    dotts = c.find_withtag('dot')
+    for dot in dotts:
+        if is_cursor_touch_dot(dot, event):
+
+            tc = c.find_withtag('tc')
+            for tc1 in tc:
+                c.delete(tc1)
+
+            true_c = canv_to_net(c.coords(dot)[0], c.coords(dot)[1])
+            c.create_text(298, 842, text=f'{true_c[0] + 2:g}', tag='tc')
+            c.create_text(388, 842, text=f'{true_c[1] - 2:g}', tag='tc')
+            # print(dot, c.coords(dot), event.x, event.y)
+            return
+
     triangls = c.find_withtag('triang')
     for tri in triangls:
         if is_cursor_touch_triang(tri, event):
@@ -183,9 +197,9 @@ def print_dot(event):
     x1, y1 = (event.x - 2), (event.y - 2)
     x2, y2 = (event.x + 2), (event.y + 2)
     if var.get():
-        c.create_oval(x1, y1, x2, y2, outline='blue', fill='blue', tag='dot')
+        c.create_oval(x1, y1, x2, y2, outline='blue', fill='blue', tag='dot', activeoutline='lightgreen', activefill='lightgreen')
     else:
-        c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='dot')
+        c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='dot', activeoutline='lightgreen', activefill='lightgreen')
 
 
 def dots_update():
@@ -229,7 +243,7 @@ def dots_update():
         x2, y2 = x + 2, y + 2
         x -= 2
         y -= 2
-        c.create_oval(round(x), round(y), round(x2), round(y2), outline='red', fill='red', tag='dot')
+        c.create_oval(round(x), round(y), round(x2), round(y2), outline='red', fill='red', tag='dot', activeoutline='lightgreen', activefill='lightgreen')
 
     for dot in sett2:
         x, y = map(float, dot.strip('\n').strip(')').strip('(').split(';'))
@@ -237,7 +251,7 @@ def dots_update():
         x2, y2 = x + 2, y + 2
         x -= 2
         y -= 2
-        c.create_oval(round(x), round(y), round(x2), round(y2), outline='blue', fill='blue', tag='dot')
+        c.create_oval(round(x), round(y), round(x2), round(y2), outline='blue', fill='blue', tag='dot', activeoutline='lightgreen', activefill='lightgreen')
 
 
 def net_to_canv(x, y):
@@ -435,6 +449,8 @@ def coordinate_field_creation():
     c.create_text(110, 190, text='Y:')
     c.create_text(438, 190, text='X:')
     c.create_text(538, 190, text='Y:')
+    c.create_text(272, 842, text='X:', fill='green')
+    c.create_text(358, 842, text='Y:', fill='green')
 
     for i in range(65, 750, 50):
         c.create_line(i, 503, i, 520, fill='black', width=2)
