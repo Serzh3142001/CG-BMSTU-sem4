@@ -285,6 +285,7 @@ def back():
         eval(com)
 
     del story[-1]
+    dots_update()
 
 
 def scale(x, y):
