@@ -1,3 +1,4 @@
+from math import *
 from tkinter import *
 import tkinter.messagebox as box
 from tkinter import messagebox
@@ -18,9 +19,9 @@ text2 = Text(width=36, height=10)
 text1.configure(state=DISABLED)
 text2.configure(state=DISABLED)
 
-image = Image.open('pic.png')
-photo = ImageTk.PhotoImage(image)
-image = c.create_image(120, 250, anchor='nw', image=photo)
+# image = Image.open('pic.png')
+# photo = ImageTk.PhotoImage(image)
+# image = c.create_image(120, 250, anchor='nw', image=photo)
 
 ent1 = Entry(width=8)
 ent2 = Entry(width=8)
@@ -38,11 +39,45 @@ sz = 1
 flag1 = 0
 flag2 = 0
 
+def cart_sum(a, b):
+    return (a[0] + b[0], a[1] + b[1])
+
+
+def cart_dif(a, b):
+    return (a[0] - b[0], a[1] - b[1])
+
+
+def rotate(a, alpha, center):
+    a = cart_dif(a, center)
+    res = (cos(alpha) * a[0] - sin(alpha) * a[1],
+           sin(alpha) * a[0] + cos(alpha) * a[1])
+    res = cart_sum(res, center)
+    return res
+
+def resize(a, k, center):
+    a = cart_dif(a, center)
+    res = (a[0]*k, a[1]*k)
+    res = cart_sum(res, center)
+    return res
+
 
 def clean_tri():
     triangls = c.find_withtag('triang')
     for tri in triangls:
         c.delete(tri)
+
+def rotate_fox(dots, alpha, center):
+    global fox_coords
+    rotated_dots = []
+    for dot in dots:
+        rotated_dots.append(rotate(dot, alpha, center))
+
+    fox = c.find_withtag('fox')
+    for elem in fox:
+        c.delete(elem)
+
+    draw_fox(rotated_dots)
+    fox_coords = rotated_dots
 
 
 def clean_all():
@@ -180,15 +215,18 @@ def click(event):
             c.create_text(388, 842, text=f'{true_c[1] - 2:g}', tag='tc')
             text1.configure(state=NORMAL)
             text2.configure(state=NORMAL)
+            coo = c.coords(dot)
+            crds = canv_to_net(coo[0], coo[1])
+            text1.insert(END, f'({crds[0]+2:g}; {crds[1]-2:g})\n')
             # print(dot, c.coords(dot), event.x, event.y)
             # disable()
             return
-
-    triangls = c.find_withtag('triang')
-    for tri in triangls:
-        if is_cursor_touch_triang(tri, event):
-            tri_click(event, tri)
-            return
+    #
+    # triangls = c.find_withtag('triang')
+    # for tri in triangls:
+    #     if is_cursor_touch_triang(tri, event):
+    #         tri_click(event, tri)
+    #         return
 
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
@@ -348,11 +386,11 @@ def redraw():
             max_len = len(f'{round((i - 365)*sz, 3):g}')
 
     for i in range(65, 670, 50):
-        c.create_text(i, 530, text=f'{round((i - 365)*sz, 3):g}' if i - 365 else '', tag='coord',
+        c.create_text(i, 530, fill='grey', text=f'{round((i - 365)*sz, 3):g}' if i - 365 else '', tag='coord',
                       font='Verdana 8' if max_len > 6 else 'Verdana 12')
 
     for i in range(210, 820, 50):
-        c.create_text(345, i + 10, text=f'{round(-(i - 510)*sz, 3):g}' if i - 510 else '', tag='coord')
+        c.create_text(345, i + 10, fill='grey', text=f'{round(-(i - 510)*sz, 3):g}' if i - 510 else '', tag='coord')
 
 
 def is_count_true(set1, set2, a, b, c):
@@ -446,7 +484,7 @@ def text_and_labels_creation():
 
 
 def buttons_creation():
-    btn_upd = Button(window, text='обновить точки', fg='green', command=lambda: dots_update())
+    btn_upd = Button(window, text='поворот', fg='green', command=lambda: rotate_fox(fox_coords, radians(5), net_to_canv(0, 0)))
     btn_add1 = Button(window, text='добавить', fg='red', command=lambda: add_dot(1))
     btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
     btn_add2 = Button(window, text='добавить', fg='blue', command=lambda: add_dot(2))
@@ -465,11 +503,11 @@ def buttons_creation():
 
 
 def coordinate_field_creation():
-    c.create_line(33, 510, 690, 510, fill='black',
+    c.create_line(33, 510, 690, 510, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6")
-    c.create_line(365, 820, 365, 185, fill='black',
+    c.create_line(365, 820, 365, 185, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6")
@@ -491,14 +529,14 @@ def coordinate_field_creation():
     c.create_text(358, 842, text='Y:', fill='green')
 
     for i in range(65, 750, 50):
-        c.create_line(i, 503, i, 520, fill='black', width=2)
-        c.create_line(i, 210, i, 810, fill='black', width=1, dash=(1, 9))
-        c.create_text(i, 530, text=f'{i - 365}' if i - 365 else '', tag='coord')
+        c.create_line(i, 503, i, 520, fill='grey', width=2)
+        c.create_line(i, 210, i, 810, fill='grey', width=1, dash=(1, 9))
+        c.create_text(i, 530, text=f'{i - 365}' if i - 365 else '', fill='grey', tag='coord')
 
     for i in range(210, 820, 50):
-        c.create_line(358, i, 372, i, fill='black', width=2)
-        c.create_line(65, i, 665, i, fill='black', width=1, dash=(1, 9))
-        c.create_text(345, i+10, text=f'{-(i - 510)}' if i - 510 else '', tag='coord')
+        c.create_line(358, i, 372, i, fill='grey', width=2)
+        c.create_line(65, i, 665, i, fill='grey', width=1, dash=(1, 9))
+        c.create_text(345, i+10, text=f'{-(i - 510)}' if i - 510 else '', fill='grey', tag='coord')
 
     c.create_text(688, 498, text='X', font='Verdana 20', fill='green')
     c.create_text(380, 195, text='Y', font='Verdana 20', fill='green')
@@ -522,12 +560,22 @@ def load_and_transf_coords(file):
             coords.append(loc)
             line = f.readline()
 
+    pol1 = [[-157, -116], [-206, -111], [-187, -157]]
+    pol2 = [[177, -65], [182, -50], [188, -38], [205, -35]]
+    for i in range(len(pol1)):
+        pol1[i] = net_to_canv(pol1[i][0], pol1[i][1])
+        coords.append(pol1[i])
+
+    for i in range(len(pol2)):
+        pol2[i] = net_to_canv(pol2[i][0], pol2[i][1])
+        coords.append(pol2[i])
+
     return coords
 
 def draw_fox(coords):
-    c.create_line(coords, width=2, activefill='lightgreen', tag='triang')
-    # for cor in coords:
-    #     c.create_line()
+    c.create_line(coords[:-7], width=2, activefill='lightgreen', tag='fox')
+    c.create_polygon(coords[-4:], width=2, activefill='lightgreen', tag='fox', fill='black')
+    c.create_polygon(coords[-7:-4], width=2, activefill='lightgreen', tag='fox', fill='black')
 
 c.bind('<1>', click)
 
@@ -535,7 +583,9 @@ text_and_labels_creation()
 buttons_creation()
 coordinate_field_creation()
 radiobutton_creation()
-# draw_fox(load_and_transf_coords('data.txt'))
+default_fox_coords = load_and_transf_coords('data.txt')
+fox_coords = load_and_transf_coords('data.txt')
+draw_fox(default_fox_coords)
 
 mmenu = Menu(window)
 add_menu = Menu(mmenu)
