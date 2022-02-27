@@ -1,11 +1,15 @@
 from tkinter import *
 import tkinter.messagebox as box
 from tkinter import messagebox
+from PIL import Image, ImageTk
 
-root = Tk()
+window = Tk()
+# window.resizable(1, 1)
+# window.config()
+# window.title('Bar simulator')
 var = IntVar()
 story = []
-c = Canvas(root, width=700, height=900, bg='white')
+c = Canvas(window, width=700, height=900, bg='white')
 c.create_rectangle(4, 32, 266, 172, outline='black', width=2)
 c.create_rectangle(429, 32, 691, 172, outline='black', width=2)
 text1 = Text(width=36, height=10)
@@ -13,6 +17,10 @@ text2 = Text(width=36, height=10)
 
 text1.configure(state=DISABLED)
 text2.configure(state=DISABLED)
+
+image = Image.open('pic.png')
+photo = ImageTk.PhotoImage(image)
+image = c.create_image(120, 250, anchor='nw', image=photo)
 
 ent1 = Entry(width=8)
 ent2 = Entry(width=8)
@@ -438,14 +446,14 @@ def text_and_labels_creation():
 
 
 def buttons_creation():
-    btn_upd = Button(root, text='обновить точки', fg='green', command=lambda: dots_update())
-    btn_add1 = Button(root, text='добавить', fg='red', command=lambda: add_dot(1))
-    btn_back = Button(root, text='назад', fg='purple', command=lambda: back())
-    btn_add2 = Button(root, text='добавить', fg='blue', command=lambda: add_dot(2))
-    btn_tri = Button(root, text='найти ΔΔ', fg='blue', command=lambda: triang_find_and_draw())
-    btn_cl_tri = Button(root, text='🗑ΔΔ', fg='orange', command=lambda: clean_tri())
-    btn_cl_all = Button(root, text='🗑всё', fg='orange', command=lambda: clean_all())
-    btn_exit = Button(root, text=' выход ', fg='red', command=exit)
+    btn_upd = Button(window, text='обновить точки', fg='green', command=lambda: dots_update())
+    btn_add1 = Button(window, text='добавить', fg='red', command=lambda: add_dot(1))
+    btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
+    btn_add2 = Button(window, text='добавить', fg='blue', command=lambda: add_dot(2))
+    btn_tri = Button(window, text='найти ΔΔ', fg='blue', command=lambda: triang_find_and_draw())
+    btn_cl_tri = Button(window, text='🗑ΔΔ', fg='orange', command=lambda: clean_tri())
+    btn_cl_all = Button(window, text='🗑всё', fg='orange', command=lambda: clean_all())
+    btn_exit = Button(window, text=' выход ', fg='red', command=exit)
     btn_cl_tri.place(x=285, y=140)
     btn_add1.place(x=220, y=180)
     btn_add2.place(x=648, y=180)
@@ -504,20 +512,38 @@ def radiobutton_creation():
     set1.place(x=290, y=55)
 
 
+def load_and_transf_coords(file):
+    coords = []
+    with open(file) as f:
+        line = f.readline()
+        while line:
+            loc = list(map(float, line.strip('\n').strip(')').strip('(').split('; ')))
+            loc = net_to_canv(loc[0], loc[1])
+            coords.append(loc)
+            line = f.readline()
+
+    return coords
+
+def draw_fox(coords):
+    c.create_line(coords, width=2, activefill='lightgreen', tag='triang')
+    # for cor in coords:
+    #     c.create_line()
+
 c.bind('<1>', click)
 
 text_and_labels_creation()
 buttons_creation()
 coordinate_field_creation()
 radiobutton_creation()
+# draw_fox(load_and_transf_coords('data.txt'))
 
-mmenu = Menu(root)
+mmenu = Menu(window)
 add_menu = Menu(mmenu)
 add_menu.add_command(label='О программе и авторе',
                      command=lambda: messagebox.showinfo('О программе и авторе', TASK + AUTHOR))
 add_menu.add_command(label='Выход', command=exit)
 mmenu.add_cascade(label='About', menu=add_menu)
-root.config(menu=mmenu)
+window.config(menu=mmenu)
 
 c.pack()
-root.mainloop()
+window.mainloop()
