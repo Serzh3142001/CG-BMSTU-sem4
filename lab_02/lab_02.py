@@ -14,6 +14,7 @@ window = Tk()
 var = IntVar()
 story = []
 c = Canvas(window, width=700, height=900, bg='white')
+old_clc = []
 # frame_bias.pack()
 # c.create_rectangle(4, 32, 266, 172, outline='black', width=2)
 # c.create_rectangle(429, 32, 691, 172, outline='black', width=2)
@@ -82,7 +83,7 @@ def clean_tri():
     for tri in triangls:
         c.delete(tri)
 
-def rotate_fox(dots, alpha, center):
+def rotate_fox(dots, alpha, center, st=1):
     try:
         alpha = radians(float(alpha))
     except:
@@ -94,6 +95,9 @@ def rotate_fox(dots, alpha, center):
     except:
         box.showinfo('Error', 'Некорректные координаты!')
         return
+
+    if st:
+        story.append(f'rotate_fox(fox_coords, {-degrees(alpha)}, {center}, 0)')
 
     global fox_coords, rotate_point
 
@@ -112,7 +116,7 @@ def rotate_fox(dots, alpha, center):
     analyze_and_redraw()
     draw_fox(fox_coords)
 
-def resize_fox(dots, k, center):
+def resize_fox(dots, k, center, st=1):
     try:
         k = float(k)/100 + 1
     except:
@@ -124,6 +128,9 @@ def resize_fox(dots, k, center):
     except:
         box.showinfo('Error', 'Некорректные координаты!')
         return
+
+    if st:
+        story.append(f'resize_fox(fox_coords, {-(k - 1)*100}, {center}, 0)')
 
     global fox_coords, resize_point
 
@@ -143,13 +150,16 @@ def resize_fox(dots, k, center):
     draw_fox(fox_coords)
 
 
-def move_fox(dots, delta, dir):
+def move_fox(dots, delta, dir, st=1):
     global sz
     try:
         delta = float(delta)/sz
     except:
         box.showinfo('Error', 'Некорректное значение процента масштабирования!')
         return
+
+    if st:
+        story.append(f'move_fox(fox_coords, {-delta*sz}, "{dir}", 0)')
 
     global fox_coords
     moved_dots = []
@@ -196,7 +206,7 @@ def analyze_and_redraw():
     except:
         box.showinfo('Error', 'Некорректные координаты!')
 
-    print(max_coord)
+    # print(max_coord)
     if 150 * sz <= max_coord <= 300 * sz:
         return
 
@@ -208,18 +218,12 @@ def analyze_and_redraw():
     scale(max_coord, max_coord)
     new = sz
     resize_dots(fox_coords, old/new, net_to_canv(0, 0))
-    reprint_dot(resize(resize_point, old/new, [0, 0]), 1)
-    reprint_dot(resize(rotate_point, old/new, [0, 0]), 2)
+    reprint_dot([float(ent3.get()), float(ent6.get())], 1)
+    reprint_dot([float(ent5.get()), float(ent7.get())], 2)
 
 
 def clean_all():
     # enable()
-    global flag1, flag2
-    flag1, flag2 = 0, 0
-    clean_tri()
-    dotts = c.find_withtag('dot')
-    for dot in dotts:
-        c.delete(dot)
     # text1.delete(1.0, END)
     # text2.delete(1.0, END)
     ent1.delete(0, END)
@@ -227,9 +231,14 @@ def clean_all():
     ent3.delete(0, END)
     ent4.delete(0, END)
     ent5.delete(0, END)
-    tc = c.find_withtag('tc')
-    for tc1 in tc:
-        c.delete(tc1)
+    ent6.delete(0, END)
+    ent7.delete(0, END)
+
+    objs = c.find_withtag('rot')
+    objs += c.find_withtag('sz')
+    objs += c.find_withtag('fox')
+    for obj in objs:
+        c.delete(obj)
 
     # disable()
 
@@ -333,7 +342,7 @@ def tri_click(event, tag):
 
 
 def click(event):
-    # global flag1, flag2
+    global old_clc
     # disable()
     # dotts = c.find_withtag('dot')
     # for dot in dotts:
@@ -364,14 +373,18 @@ def click(event):
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
 
+    old_clc.append(canv_to_net(event.x, event.y)+[var.get()+1])
+    if len(old_clc) > 1:
+        story.append(f'reprint_dot({old_clc[-2][:-1]}, {old_clc[-2][-1]});old_clc.pop()')
+
     global rotate_point, resize_point
     if var.get():
         rotate_point = canv_to_net(event.x, event.y)
     else:
         resize_point = canv_to_net(event.x, event.y)
 
-    reprint_dot(canv_to_net(event.x, event.y))
-    #
+    reprint_dot(old_clc[-1][:-1])
+
     # dotts = c.find_withtag('dot')
     # story.append(f'c.delete({dotts[-1]})')
     # # c.delete(dotts[-1])
@@ -400,6 +413,7 @@ def click(event):
 
 
 def reprint_dot(coords, fl=0):
+    global sz
     buf = net_to_canv(coords[0], coords[1])
 
     x1, y1 = (buf[0] - 2), (buf[1] - 2)
@@ -492,7 +506,7 @@ def net_to_canv(x, y):
     global sz
     center = (365, 510)
 
-    return round(x/sz + center[0]), round(center[1] - y/sz)
+    return [round(x/sz + center[0]), round(center[1] - y/sz)]
 
 
 def canv_to_net(x, y):
@@ -504,10 +518,11 @@ def canv_to_net(x, y):
     global sz
     center = (365, 510)
 
-    return round((x - center[0])*sz, 3), round((center[1] - y)*sz, 3)
+    return [round((x - center[0])*sz, 3), round((center[1] - y)*sz, 3)]
 
 
 def back():
+    global old_clc
     # enable()
     if not len(story):
         return
@@ -522,6 +537,7 @@ def back():
     for com in commands:
         if not com:
             continue
+        print(f'[{com}]')
         eval(com)
 
     del story[-1]
@@ -706,7 +722,7 @@ def buttons_creation():
     btn_mv_d = Button(window, text='▼', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'down'))
 
     btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
-    btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: clean_all())
+    btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
     btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 
     btn_res_l.place(x=330, y=150)
@@ -723,7 +739,7 @@ def buttons_creation():
     btn_rot_l.place(x=590, y=150)
 
     btn_back.place(x=25, y=140)
-    btn_exit.place(x=650, y=840)
+    btn_exit.place(x=630, y=840)
 
 
 def coordinate_field_creation():
@@ -800,6 +816,21 @@ def draw_fox(coords):
     c.create_line(coords[:-7], width=2, activefill='lightgreen', tag='fox')
     c.create_polygon(coords[-4:], width=2, activefill='lightgreen', tag='fox', fill='black')
     c.create_polygon(coords[-7:-4], width=2, activefill='lightgreen', tag='fox', fill='black')
+
+def start_state():
+    global story
+    scale(200, 200)
+    story = []
+    clean_all()
+    ent1.insert(0, 15)
+    ent2.insert(0, 5)
+    ent3.insert(0, 0)
+    ent4.insert(0, 5)
+    ent5.insert(0, 0)
+    ent6.insert(0, 0)
+    ent7.insert(0, 0)
+    draw_fox(default_fox_coords)
+
 
 c.bind('<1>', click)
 
