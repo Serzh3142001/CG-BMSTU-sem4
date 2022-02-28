@@ -52,8 +52,8 @@ ent7.insert(0, 0)
 TASK = 'Вариант 13:\nНарисовать исходный рисунок, затем его переместить, промасштабировать, повернуть'
 AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
 sz = 1
-flag1 = 0
-flag2 = 0
+resize_point = [0, 0]
+rotate_point = [0, 0]
 
 def cart_sum(a, b):
     return (a[0] + b[0], a[1] + b[1])
@@ -95,9 +95,11 @@ def rotate_fox(dots, alpha, center):
         box.showinfo('Error', 'Некорректные координаты!')
         return
 
-    reprint_dot([x, y], 2)
+    global fox_coords, rotate_point
 
-    global fox_coords
+    reprint_dot([x, y], 2)
+    rotate_point = [x, y]
+
     rotated_dots = []
     for dot in dots:
         rotated_dots.append(rotate(dot, alpha, center))
@@ -106,8 +108,9 @@ def rotate_fox(dots, alpha, center):
     for elem in fox:
         c.delete(elem)
 
-    draw_fox(rotated_dots)
     fox_coords = rotated_dots
+    analyze_and_redraw()
+    draw_fox(fox_coords)
 
 def resize_fox(dots, k, center):
     try:
@@ -122,9 +125,11 @@ def resize_fox(dots, k, center):
         box.showinfo('Error', 'Некорректные координаты!')
         return
 
-    reprint_dot([x, y], 1)
+    global fox_coords, resize_point
 
-    global fox_coords
+    reprint_dot([x, y], 1)
+    resize_point = [x, y]
+
     resized_dots = []
     for dot in dots:
         resized_dots.append(resize(dot, k, center))
@@ -133,12 +138,15 @@ def resize_fox(dots, k, center):
     for elem in fox:
         c.delete(elem)
 
-    draw_fox(resized_dots)
     fox_coords = resized_dots
+    analyze_and_redraw()
+    draw_fox(fox_coords)
+
 
 def move_fox(dots, delta, dir):
+    global sz
     try:
-        delta = float(delta)
+        delta = float(delta)/sz
     except:
         box.showinfo('Error', 'Некорректное значение процента масштабирования!')
         return
@@ -159,22 +167,49 @@ def move_fox(dots, delta, dir):
     for elem in fox:
         c.delete(elem)
 
-    draw_fox(moved_dots)
     fox_coords = moved_dots
+    analyze_and_redraw()
+    draw_fox(fox_coords)
+
+
+def resize_dots(dots, k, center):
+    global fox_coords
+
+    resized_dots = []
+    for dot in dots:
+        resized_dots.append(resize(dot, k, center))
+
+    fox_coords = resized_dots
 
 def analyze_and_redraw():
     global fox_coords, sz
     max_coord = 0
 
     for dot in fox_coords:
+        dot = canv_to_net(dot[0], dot[1])
         if max(abs(dot[0]), abs(dot[1])) > max_coord:
             max_coord = max(abs(dot[0]), abs(dot[1]))
 
-    # if max_coord > 300:
+    try:
+        max_coord = max(max_coord, abs(float(ent3.get())), abs(float(ent5.get())),
+                        abs(float(ent6.get())), abs(float(ent7.get())))
+    except:
+        box.showinfo('Error', 'Некорректные координаты!')
+
+    print(max_coord)
+    if 150 * sz <= max_coord <= 300 * sz:
+        return
+
+    # fox = c.find_withtag('fox')
+    # for elem in fox:
+    #     c.delete(elem)
+
     old = sz
     scale(max_coord, max_coord)
     new = sz
-    resize_fox(fox_coords, (new/old - 1)*100, net_to_canv(0, 0))
+    resize_dots(fox_coords, old/new, net_to_canv(0, 0))
+    reprint_dot(resize(resize_point, old/new, [0, 0]), 1)
+    reprint_dot(resize(rotate_point, old/new, [0, 0]), 2)
 
 
 def clean_all():
@@ -328,6 +363,12 @@ def click(event):
 
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
+
+    global rotate_point, resize_point
+    if var.get():
+        rotate_point = canv_to_net(event.x, event.y)
+    else:
+        resize_point = canv_to_net(event.x, event.y)
 
     reprint_dot(canv_to_net(event.x, event.y))
     #
