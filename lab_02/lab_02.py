@@ -14,7 +14,10 @@ window = Tk()
 var = IntVar()
 story = []
 c = Canvas(window, width=700, height=900, bg='white')
-old_clc = []
+res_coords = []
+rot_coords = []
+cnt_res_clc = 0
+cnt_rot_clc = 0
 # frame_bias.pack()
 # c.create_rectangle(4, 32, 266, 172, outline='black', width=2)
 # c.create_rectangle(429, 32, 691, 172, outline='black', width=2)
@@ -342,7 +345,8 @@ def tri_click(event, tag):
 
 
 def click(event):
-    global old_clc
+    global res_coords, cnt_res_clc, cnt_rot_clc
+
     # disable()
     # dotts = c.find_withtag('dot')
     # for dot in dotts:
@@ -373,17 +377,41 @@ def click(event):
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
 
-    old_clc.append(canv_to_net(event.x, event.y)+[var.get()+1])
-    if len(old_clc) > 1:
-        story.append(f'reprint_dot({old_clc[-2][:-1]}, {old_clc[-2][-1]});old_clc.pop()')
+    if var.get():
+        cnt_rot_clc += 1
+        rot_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
+        if len(rot_coords) > 1:
+            story.append(f'reprint_dot({rot_coords[-2][:-1]}, {rot_coords[-2][-1]});rot_coords.pop()')
+    else:
+        cnt_res_clc += 1
+        res_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
+        if len(res_coords) > 1:
+            story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});res_coords.pop()')
+
+    # if not (var.get() and cnt_rot_clc == 1 or not var.get() and cnt_res_clc == 1):
+    #     res_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
+    # elif cnt_res_clc + cnt_rot_clc == 1:
+    #     res_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
+    #
+    # if len(res_coords) > 1 and not (var.get() and cnt_rot_clc == 1 or not var.get() and cnt_res_clc == 1):
+    #     story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});old_clc.pop()')
+
+
+    # else:
+    #     # objs = c.find_withtag('rot')
+    #     # objs += c.find_withtag('sz')
+    #     # for obj in objs: c.delete(obj)
+    #     story.append(f'for obj in c.find_withtag("rot", "sz"): c.delete(obj)')
 
     global rotate_point, resize_point
     if var.get():
         rotate_point = canv_to_net(event.x, event.y)
+        reprint_dot(rotate_point)
     else:
         resize_point = canv_to_net(event.x, event.y)
+        reprint_dot(resize_point)
 
-    reprint_dot(old_clc[-1][:-1])
+    # reprint_dot(res_coords[-1][:-1])
 
     # dotts = c.find_withtag('dot')
     # story.append(f'c.delete({dotts[-1]})')
@@ -522,7 +550,7 @@ def canv_to_net(x, y):
 
 
 def back():
-    global old_clc
+    global res_coords, rot_coords
     # enable()
     if not len(story):
         return
@@ -537,7 +565,7 @@ def back():
     for com in commands:
         if not com:
             continue
-        print(f'[{com}]')
+        # print(f'[{com}]')
         eval(com)
 
     del story[-1]
