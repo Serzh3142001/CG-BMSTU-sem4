@@ -13,7 +13,8 @@ window = Tk()
 # window.title('Bar simulator')
 var = IntVar()
 story = []
-c = Canvas(window, width=700, height=900, bg='white')
+win_size = [700, 900]
+c = Canvas(window, width=win_size[0], height=win_size[1], bg='white')
 res_coords = []
 rot_coords = []
 cnt_res_clc = 0
@@ -52,6 +53,49 @@ ent4.insert(0, 5)
 ent5.insert(0, 0)
 ent6.insert(0, 0)
 ent7.insert(0, 0)
+
+label1 = Label(text='Смещение:', font='Arial 15')
+label1.place(x=60, y=5)
+label2 = Label(text='Масштабирование:', font='Arial 15')
+label2.place(x=280, y=5)
+label3 = Label(text='Поворот:', font='Arial 15')
+label3.place(x=535, y=5)
+
+label4 = Label(text='На:', font='Arial 15')
+label5 = Label(text='На:', font='Arial 15')
+label6 = Label(text='X:', font='Arial 15')
+label7 = Label(text='Y:', font='Arial 15')
+label8 = Label(text='X:', font='Arial 15')
+label9 = Label(text='Y:', font='Arial 15')
+label10 = Label(text='Относ.\nточки:', font='Arial 13')
+label11 = Label(text='На:', font='Arial 15')
+label12 = Label(text='Относ.\nточки:', font='Arial 13')
+label13 = Label(text='%', font='Arial 15')
+label14 = Label(text='°', font='Arial 17')
+
+btn_rot_r = Button(window, text='↻', fg='green', command=lambda: rotate_fox(fox_coords, ent4.get(),
+                                                                                net_to_canv(ent5.get(),
+                                                                                            ent7.get())))
+btn_rot_l = Button(window, text='↺', fg='green', command=lambda: rotate_fox(fox_coords, '-'+ent4.get(),
+                                                                            net_to_canv(ent5.get(),
+                                                                                        ent7.get())))
+btn_res_r = Button(window, text='▲', fg='green', command=lambda: resize_fox(fox_coords, ent2.get(),
+                                                                           net_to_canv(ent3.get(),
+                                                                                       ent6.get())))
+btn_res_l = Button(window, text='▼', fg='green', command=lambda: resize_fox(fox_coords, '-' + ent2.get(),
+                                                                           net_to_canv(ent3.get(),
+                                                                                       ent6.get())))
+btn_mv_r = Button(window, text='▶', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'right'))
+btn_mv_l = Button(window, text='◀', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'left'))
+btn_mv_u = Button(window, text='▲', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'up'))
+btn_mv_d = Button(window, text='▼', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'down'))
+btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
+btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
+btn_exit = Button(window, text=' выход ', fg='red', command=exit)
+
+set0 = Radiobutton(text="➚", fg='black', variable=var, value=0)
+set1 = Radiobutton(text="➚", fg='black', variable=var, value=1)
+
 
 TASK = 'Вариант 13:\nНарисовать исходный рисунок, затем его переместить, промасштабировать, повернуть'
 AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
@@ -691,35 +735,20 @@ def text_and_labels_creation():
     # lab1 = Label(frame_bias, width=7, height=4, text='Смещение:')
     # lab1.place(x=50, y=50)
 
-    label1 = Label(text='Смещение:', font='Arial 15')
     label1.place(x=60, y=5)
-    label2 = Label(text='Масштабирование:', font='Arial 15')
     label2.place(x=280, y=5)
-    label3 = Label(text='Поворот:', font='Arial 15')
     label3.place(x=535, y=5)
-
-    label4 = Label(text='На:', font='Arial 15')
     label4.place(x=35, y=43)
-    label5 = Label(text='На:', font='Arial 15')
     label5.place(x=285, y=43)
-    label4 = Label(text='X:', font='Arial 15')
-    label4.place(x=295, y=82)
-    label5 = Label(text='Y:', font='Arial 15')
-    label5.place(x=295, y=112)
-    label4 = Label(text='X:', font='Arial 15')
-    label4.place(x=545, y=82)
-    label5 = Label(text='Y:', font='Arial 15')
-    label5.place(x=545, y=112)
-    label6 = Label(text='Относ.\nточки:', font='Arial 13')
-    label6.place(x=491, y=90)
-    label7 = Label(text='На:', font='Arial 15')
-    label7.place(x=535, y=43)
-    label8 = Label(text='Относ.\nточки:', font='Arial 13')
-    label8.place(x=241, y=90)
-    label8 = Label(text='%', font='Arial 15')
-    label8.place(x=403, y=42)
-    label8 = Label(text='°', font='Arial 17')
-    label8.place(x=653, y=42)
+    label6.place(x=295, y=82)
+    label7.place(x=295, y=112)
+    label8.place(x=545, y=82)
+    label9.place(x=545, y=112)
+    label10.place(x=491, y=90)
+    label11.place(x=535, y=43)
+    label12.place(x=241, y=90)
+    label13.place(x=403, y=42)
+    label14.place(x=653, y=42)
     # label2 = Label(text='Точки второго множества:', font='Arial 15')
     # c.create_text(300, 15, text='                           Смещение:'
     #                             '                           Масштабирование:'
@@ -732,40 +761,15 @@ def text_and_labels_creation():
 
 
 def buttons_creation():
-    btn_rot_r = Button(window, text='↻', fg='green', command=lambda: rotate_fox(fox_coords, ent4.get(),
-                                                                                net_to_canv(ent5.get(),
-                                                                                            ent7.get())))
-    btn_rot_l = Button(window, text='↺', fg='green', command=lambda: rotate_fox(fox_coords, '-'+ent4.get(),
-                                                                                net_to_canv(ent5.get(),
-                                                                                            ent7.get())))
-    btn_res_r = Button(window, text='▲', fg='green', command=lambda: resize_fox(fox_coords, ent2.get(),
-                                                                               net_to_canv(ent3.get(),
-                                                                                           ent6.get())))
-    btn_res_l = Button(window, text='▼', fg='green', command=lambda: resize_fox(fox_coords, '-' + ent2.get(),
-                                                                               net_to_canv(ent3.get(),
-                                                                                           ent6.get())))
-    btn_mv_r = Button(window, text='▶', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'right'))
-    btn_mv_l = Button(window, text='◀', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'left'))
-    btn_mv_u = Button(window, text='▲', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'up'))
-    btn_mv_d = Button(window, text='▼', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'down'))
-
-    btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
-    btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
-    btn_exit = Button(window, text=' выход ', fg='red', command=exit)
-
     btn_res_l.place(x=330, y=150)
     btn_res_r.place(x=360, y=150)
-
     btn_mv_r.place(x=125, y=110)
     btn_mv_l.place(x=85, y=110)
     btn_mv_u.place(x=105, y=90)
     btn_mv_d.place(x=105, y=130)
-
     btn_cl_all.place(x=25, y=170)
-
     btn_rot_r.place(x=620, y=150)
     btn_rot_l.place(x=590, y=150)
-
     btn_back.place(x=25, y=140)
     btn_exit.place(x=630, y=840)
 
@@ -812,8 +816,6 @@ def coordinate_field_creation():
 
 def radiobutton_creation():
     var.set(0)
-    set0 = Radiobutton(text="➚", fg='black', variable=var, value=0)
-    set1 = Radiobutton(text="➚", fg='black', variable=var, value=1)
     set0.place(x=405, y=97)
     set1.place(x=655, y=97)
 
@@ -859,8 +861,92 @@ def start_state():
     ent7.insert(0, 0)
     draw_fox(default_fox_coords)
 
+def config(event):
+    if event.widget == window:
+        kx=window.winfo_width()/win_size[0]
+        ky=window.winfo_height()/win_size[1]
+        # print(kx, ky)
+        if kx < 0.9 or ky < 0.85:
+            return
+        ## условие
+        max_elems = 20
+        ent_places = [0]*max_elems
+        lbl_places = [0] * max_elems
+        btn_places = [0] * max_elems
+        radiobtn_places = [0] * max_elems
+        for ent in ents.split('\n'):
+            ind = int(ent.split('ent')[1].split('.')[0])
+            ent_places[ind] = [int(ent.split('x=')[1].split(',')[0]), int(ent.split('y=')[1].split(')')[0])]
+
+        for lbl in lbls.split('\n'):
+            ind = int(lbl.split('label')[1].split('.')[0])
+            lbl_places[ind] = [int(lbl.split('x=')[1].split(',')[0]), int(lbl.split('y=')[1].split(')')[0])]
+
+        k = 0
+        for btn in btns.split('\n'):
+            name = btn.split('.')[0]
+            btn_places[k] = [name, int(btn.split('x=')[1].split(',')[0]), int(btn.split('y=')[1].split(')')[0])]
+            k += 1
+
+        for rbtn in rbtns.split('\n'):
+            ind = int(rbtn.split('set')[1].split('.')[0])
+            radiobtn_places[ind] = [int(rbtn.split('x=')[1].split(',')[0]), int(rbtn.split('y=')[1].split(')')[0])]
+
+        for i in range(max_elems):
+            if ent_places[i]:
+                eval(f'ent{i}.place(x={ent_places[i][0]} * kx, y={ent_places[i][1]} * ky)')
+            if lbl_places[i]:
+                eval(f'label{i}.place(x={lbl_places[i][0]} * kx, y={lbl_places[i][1]} * ky)')
+            if btn_places[i]:
+                eval(f'{btn_places[i][0]}.place(x={btn_places[i][1]} * kx, y={btn_places[i][2]} * ky)')
+            if radiobtn_places[i]:
+                eval(f'set{i}.place(x={radiobtn_places[i][0]} * kx, y={radiobtn_places[i][1]} * ky)')
+        btn_exit.place(x=window.winfo_width()-70, y=window.winfo_height()-60)
+        # print(c.coords(c))
+        c.place(x=355*kx-365, y=210*ky-210)
+        # ent4.place(x=570 * kx, y=40 * ky)
+        # task_text_label.place(x=20 * window_size_X, y=60* window_size_Y)
+
+ents = '''ent1.place(x=70, y=40)
+ent2.place(x=320, y=40)
+ent3.place(x=320, y=80)
+ent4.place(x=570, y=40)
+ent5.place(x=570, y=80)
+ent6.place(x=320, y=110)
+ent7.place(x=570, y=110)'''
+
+lbls = '''label1.place(x=60, y=5)
+label2.place(x=280, y=5)
+label3.place(x=535, y=5)
+label4.place(x=35, y=43)
+label5.place(x=285, y=43)
+label6.place(x=295, y=82)
+label7.place(x=295, y=112)
+label8.place(x=545, y=82)
+label9.place(x=545, y=112)
+label10.place(x=491, y=90)
+label11.place(x=535, y=43)
+label12.place(x=241, y=90)
+label13.place(x=403, y=42)
+label14.place(x=653, y=42)'''
+
+btns = '''btn_res_l.place(x=330, y=150)
+btn_res_r.place(x=360, y=150)
+btn_mv_r.place(x=125, y=110)
+btn_mv_l.place(x=85, y=110)
+btn_mv_u.place(x=105, y=90)
+btn_mv_d.place(x=105, y=130)
+btn_cl_all.place(x=25, y=170)
+btn_rot_r.place(x=620, y=150)
+btn_rot_l.place(x=590, y=150)
+btn_back.place(x=25, y=140)
+btn_exit.place(x=630, y=840)'''
+
+rbtns = '''set0.place(x=405, y=97)
+set1.place(x=655, y=97)'''
 
 c.bind('<1>', click)
+window.bind("<Configure>", config)
 
 text_and_labels_creation()
 buttons_creation()
