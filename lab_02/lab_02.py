@@ -55,6 +55,10 @@ label11 = Label(text='На:', font='Arial 15')
 label12 = Label(text='Относ.\nточки:', font='Arial 13')
 label13 = Label(text='%', font='Arial 15')
 label14 = Label(text='°', font='Arial 17')
+label15 = Label(text='◀ ▶ ▲ ▼', font='Arial 13', fg='orange')
+label16 = Label(text='⌘ ▲ ▼', font='Arial 13', fg='orange')
+label17 = Label(text='⌘[⇧]R', font='Arial 13', fg='orange')
+label18 = Label(text='⌘Z', font='Arial 13', fg='orange')
 
 btn_rot_r = Button(window, text='↻', fg='green', command=lambda: rotate_fox(fox_coords, ent4.get(),
                                                                                 net_to_canv(ent5.get(),
@@ -100,7 +104,11 @@ label10.place(x=491, y=90)
 label11.place(x=535, y=43)
 label12.place(x=241, y=90)
 label13.place(x=403, y=42)
-label14.place(x=653, y=42)'''
+label14.place(x=653, y=42)
+label15.place(x=150, y=7)
+label16.place(x=425, y=7)
+label17.place(x=613, y=7)
+label18.place(x=20, y=120)'''
 
 btns = '''btn_res_l.place(x=330, y=150)
 btn_res_r.place(x=360, y=150)
@@ -117,14 +125,12 @@ btn_exit.place(x=630, y=840)'''
 rbtns = '''set0.place(x=405, y=97)
 set1.place(x=655, y=97)'''
 
-
-
-
 TASK = 'Вариант 13:\nНарисовать исходный рисунок, затем его переместить, промасштабировать, повернуть'
 AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
 sz = 1
 resize_point = [0, 0]
 rotate_point = [0, 0]
+
 
 def cart_sum(a, b):
     return (a[0] + b[0], a[1] + b[1])
@@ -141,17 +147,13 @@ def rotate(a, alpha, center):
     res = cart_sum(res, center)
     return res
 
+
 def resize(a, k, center):
     a = cart_dif(a, center)
     res = (a[0]*k, a[1]*k)
     res = cart_sum(res, center)
     return res
 
-
-def clean_tri():
-    triangls = c.find_withtag('triang')
-    for tri in triangls:
-        c.delete(tri)
 
 def rotate_fox(dots, alpha, center, st=1):
     try:
@@ -166,12 +168,16 @@ def rotate_fox(dots, alpha, center, st=1):
         box.showinfo('Error', 'Некорректные координаты!')
         return
 
-    if st:
-        story.append(f'rotate_fox(fox_coords, {-degrees(alpha)}, {center}, 0)')
-
     global fox_coords, rotate_point
 
     reprint_dot([x, y], 2)
+    if st and [x, y] != rotate_point:
+        rot_coords.append([x, y] + [2])
+        if len(rot_coords) > 1:
+            story.append(f'reprint_dot({rot_coords[-2][:-1]}, {rot_coords[-2][-1]});rot_coords.pop()')
+        else:
+            story.append(f'del_with_tag("rot")'+';rot_coords.pop()' if len(rot_coords) else '')
+
     rotate_point = [x, y]
 
     rotated_dots = []
@@ -184,6 +190,10 @@ def rotate_fox(dots, alpha, center, st=1):
 
     fox_coords = rotated_dots
     analyze_and_redraw()
+
+    if st:
+        story.append(f'rotate_fox(fox_coords, {-degrees(alpha)}, {net_to_canv(ent5.get(), ent7.get())}, 0)')
+
     draw_fox(fox_coords)
 
 def resize_fox(dots, k, center, st=1):
@@ -199,12 +209,16 @@ def resize_fox(dots, k, center, st=1):
         box.showinfo('Error', 'Некорректные координаты!')
         return
 
-    if st:
-        story.append(f'resize_fox(fox_coords, {-(k - 1)*100}, {center}, 0)')
-
-    global fox_coords, resize_point
+    global fox_coords, resize_point, sz
 
     reprint_dot([x, y], 1)
+    if st and [x, y] != resize_point:
+        res_coords.append([x, y] + [1])
+        if len(res_coords) > 1:
+            story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});res_coords.pop()')
+        else:
+            story.append(f'del_with_tag("sz")'+';res_coords.pop()' if len(res_coords) else '')
+
     resize_point = [x, y]
 
     resized_dots = []
@@ -217,6 +231,10 @@ def resize_fox(dots, k, center, st=1):
 
     fox_coords = resized_dots
     analyze_and_redraw()
+
+    if st:
+        story.append(f'resize_fox(fox_coords, {-(k - 1)*100}, {net_to_canv(ent3.get(), ent6.get())}, 0)')
+
     draw_fox(fox_coords)
 
 
@@ -309,8 +327,29 @@ def clean_coords():
         c.delete(cor)
 
 
+def del_with_tag(tag):
+    for obj in c.find_withtag(tag):
+        c.delete(obj)
+
+    if tag == 'sz':
+        ent2.delete(0, END)
+        ent3.delete(0, END)
+        ent6.delete(0, END)
+        ent2.insert(0, 5)
+        ent3.insert(0, 0)
+        ent6.insert(0, 0)
+
+    if tag == 'rot':
+        ent4.delete(0, END)
+        ent5.delete(0, END)
+        ent7.delete(0, END)
+        ent4.insert(0, 5)
+        ent5.insert(0, 0)
+        ent7.insert(0, 0)
+
+
 def click(event):
-    global res_coords, cnt_res_clc, cnt_rot_clc
+    global res_coords, rot_coords, cnt_res_clc, cnt_rot_clc
 
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
@@ -320,11 +359,15 @@ def click(event):
         rot_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
         if len(rot_coords) > 1:
             story.append(f'reprint_dot({rot_coords[-2][:-1]}, {rot_coords[-2][-1]});rot_coords.pop()')
+        else:
+            story.append(f'del_with_tag("rot")'+';rot_coords.pop()' if len(rot_coords) else '')
     else:
         cnt_res_clc += 1
         res_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
         if len(res_coords) > 1:
             story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});res_coords.pop()')
+        else:
+            story.append(f'del_with_tag("sz")'+';res_coords.pop()' if len(res_coords) else '')
 
     global rotate_point, resize_point
     if var.get():
@@ -367,7 +410,11 @@ def reprint_dot(coords, fl=0):
         c.create_text(x1 + 2, y1 - 2, text='↻', fill='green', tag='rot', font='Helvetica 40')
 
 
-def net_to_canv(x, y):
+def net_to_canv(x, y=None):
+    if y == None:
+        t = x[0]
+        y = x[1]
+        x = t
     try:
         x, y = float(x), float(y)
     except:
@@ -379,7 +426,11 @@ def net_to_canv(x, y):
     return [round(x/sz + center[0]), round(center[1] - y/sz)]
 
 
-def canv_to_net(x, y):
+def canv_to_net(x, y=None):
+    if y == None:
+        t = x[0]
+        y = x[1]
+        x = t
     try:
         x, y = float(x), float(y)
     except:
@@ -388,7 +439,7 @@ def canv_to_net(x, y):
     global sz
     center = (365, 510)
 
-    return [round((x - center[0])*sz, 3), round((center[1] - y)*sz, 3)]
+    return [(x - center[0])*sz, (center[1] - y)*sz]
 
 
 def back():
@@ -408,7 +459,12 @@ def back():
             continue
         eval(com)
 
-    # analyze_and_redraw()
+    fox = c.find_withtag('fox')
+    for elem in fox:
+        c.delete(elem)
+    analyze_and_redraw()
+    draw_fox(fox_coords)
+
     del story[-1]
 
 
@@ -456,6 +512,10 @@ def text_and_labels_creation():
     label12.place(x=241, y=90)
     label13.place(x=403, y=42)
     label14.place(x=653, y=42)
+    label15.place(x=150, y=7)
+    label16.place(x=425, y=7)
+    label17.place(x=613, y=7)
+    label18.place(x=20, y=120)
 
 
 def buttons_creation():
@@ -541,9 +601,11 @@ def draw_fox(coords):
 
 
 def start_state():
-    global story
+    global story, rot_coords, res_coords
     scale(200, 200)
     story = []
+    res_coords = []
+    rot_coords = []
     clean_all()
     ent1.insert(0, 15)
     ent2.insert(0, 5)
@@ -553,6 +615,7 @@ def start_state():
     ent6.insert(0, 0)
     ent7.insert(0, 0)
     draw_fox(default_fox_coords)
+
 
 def config(event):
     if event.widget == window:
@@ -609,28 +672,6 @@ window.bind("<Right>", lambda event: move_fox(fox_coords, ent1.get(), 'right'))
 window.bind("<Left>", lambda event: move_fox(fox_coords, ent1.get(), 'left'))
 window.bind("<Command-z>", lambda event: back())
 window.bind("<Configure>", config)
-
-
-btn_rot_r = Button(window, text='↻', fg='green', command=lambda: rotate_fox(fox_coords, ent4.get(),
-                                                                                net_to_canv(ent5.get(),
-                                                                                            ent7.get())))
-btn_rot_l = Button(window, text='↺', fg='green', command=lambda: rotate_fox(fox_coords, '-'+ent4.get(),
-                                                                            net_to_canv(ent5.get(),
-                                                                                        ent7.get())))
-btn_res_r = Button(window, text='▲', fg='green', command=lambda: resize_fox(fox_coords, ent2.get(),
-                                                                           net_to_canv(ent3.get(),
-                                                                                       ent6.get())))
-btn_res_l = Button(window, text='▼', fg='green', command=lambda: resize_fox(fox_coords, '-' + ent2.get(),
-                                                                           net_to_canv(ent3.get(),
-                                                                                       ent6.get())))
-btn_mv_r = Button(window, text='▶', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'right'))
-btn_mv_l = Button(window, text='◀', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'left'))
-btn_mv_u = Button(window, text='▲', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'up'))
-btn_mv_d = Button(window, text='▼', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'down'))
-btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
-btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
-btn_exit = Button(window, text=' выход ', fg='red', command=exit)
-
 
 
 text_and_labels_creation()
