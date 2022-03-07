@@ -15,13 +15,16 @@ rot_coords = []
 cnt_res_clc = 0
 cnt_rot_clc = 0
 
-ent1 = Entry(width=8)
-ent2 = Entry(width=8)
+ent1 = Entry(width=3)
+ent2 = Entry(width=3)
 ent3 = Entry(width=8)
 ent4 = Entry(width=8)
 ent5 = Entry(width=8)
 ent6 = Entry(width=8)
 ent7 = Entry(width=8)
+ent8 = Entry(width=3)
+ent9 = Entry(width=3)
+ent10 = Entry(width=2)
 ent1.place(x=70, y=40)
 ent2.place(x=320, y=40)
 ent3.place(x=320, y=80)
@@ -29,13 +32,19 @@ ent4.place(x=570, y=40)
 ent5.place(x=570, y=80)
 ent6.place(x=320, y=110)
 ent7.place(x=570, y=110)
+ent8.place(x=365, y=40)
+ent9.place(x=115, y=40)
+ent10.place(x=100, y=97)
 ent1.insert(0, 15)
-ent2.insert(0, 5)
+ent2.insert(0, 1.1)
 ent3.insert(0, 0)
 ent4.insert(0, 5)
 ent5.insert(0, 0)
 ent6.insert(0, 0)
 ent7.insert(0, 0)
+ent8.insert(0, 1.3)
+ent9.insert(0, 5)
+ent10.insert(0, 15)
 
 label1 = Label(text='Смещение:', font='Arial 15')
 label1.place(x=60, y=5)
@@ -45,7 +54,7 @@ label3 = Label(text='Поворот:', font='Arial 15')
 label3.place(x=535, y=5)
 
 label4 = Label(text='На:', font='Arial 15')
-label5 = Label(text='На:', font='Arial 15')
+label5 = Label(text='В:', font='Arial 15')
 label6 = Label(text='X:', font='Arial 15')
 label7 = Label(text='Y:', font='Arial 15')
 label8 = Label(text='X:', font='Arial 15')
@@ -53,12 +62,16 @@ label9 = Label(text='Y:', font='Arial 15')
 label10 = Label(text='Относ.\nточки:', font='Arial 13')
 label11 = Label(text='На:', font='Arial 15')
 label12 = Label(text='Относ.\nточки:', font='Arial 13')
-label13 = Label(text='%', font='Arial 15')
+label13 = Label(text='раз', font='Arial 15')
 label14 = Label(text='°', font='Arial 17')
 label15 = Label(text='◀ ▶ ▲ ▼', font='Arial 13', fg='orange')
 label16 = Label(text='⌘ ▲ ▼', font='Arial 13', fg='orange')
 label17 = Label(text='⌘[⇧]R', font='Arial 13', fg='orange')
 label18 = Label(text='⌘Z', font='Arial 13', fg='orange')
+label19 = Label(text='x:', font='Arial 11', fg='grey')
+label20 = Label(text='y:', font='Arial 11', fg='grey')
+label21 = Label(text='x:', font='Arial 11', fg='grey')
+label22 = Label(text='y:', font='Arial 11', fg='grey')
 
 btn_rot_r = Button(window, text='↻', fg='green', command=lambda: rotate_fox(fox_coords, ent4.get(),
                                                                                 net_to_canv(ent5.get(),
@@ -66,16 +79,17 @@ btn_rot_r = Button(window, text='↻', fg='green', command=lambda: rotate_fox(fo
 btn_rot_l = Button(window, text='↺', fg='green', command=lambda: rotate_fox(fox_coords, '-'+ent4.get(),
                                                                             net_to_canv(ent5.get(),
                                                                                         ent7.get())))
-btn_res_r = Button(window, text='▲', fg='green', command=lambda: resize_fox(fox_coords, ent2.get(),
+btn_res_r = Button(window, text='▲', fg='green', command=lambda: resize_fox(fox_coords, 1, ent2.get(), ent8.get(),
                                                                            net_to_canv(ent3.get(),
                                                                                        ent6.get())))
-btn_res_l = Button(window, text='▼', fg='green', command=lambda: resize_fox(fox_coords, '-' + ent2.get(),
+btn_res_l = Button(window, text='▼', fg='green', command=lambda: resize_fox(fox_coords, -1, ent2.get(), ent8.get(),
                                                                            net_to_canv(ent3.get(),
                                                                                        ent6.get())))
-btn_mv_r = Button(window, text='▶', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'right'))
-btn_mv_l = Button(window, text='◀', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'left'))
-btn_mv_u = Button(window, text='▲', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'up'))
-btn_mv_d = Button(window, text='▼', fg='green', command=lambda: move_fox(fox_coords, ent1.get(), 'down'))
+btn_mv = Button(window, text='move', fg='green', command=lambda: move_fox(fox_coords, [ent1.get(), ent9.get()], 'w'))
+btn_mv_r = Button(window, text='▶', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'right'))
+btn_mv_l = Button(window, text='◀', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'left'))
+btn_mv_u = Button(window, text='▲', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'up'))
+btn_mv_d = Button(window, text='▼', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'down'))
 btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
 btn_exit = Button(window, text=' выход ', fg='red', command=exit)
@@ -89,13 +103,16 @@ ent3.place(x=320, y=80)
 ent4.place(x=570, y=40)
 ent5.place(x=570, y=80)
 ent6.place(x=320, y=110)
-ent7.place(x=570, y=110)'''
+ent7.place(x=570, y=110)
+ent8.place(x=365, y=40)
+ent9.place(x=115, y=40)
+ent10.place(x=100, y=97)'''
 
 lbls = '''label1.place(x=60, y=5)
 label2.place(x=280, y=5)
 label3.place(x=535, y=5)
 label4.place(x=35, y=43)
-label5.place(x=285, y=43)
+label5.place(x=290, y=43)
 label6.place(x=295, y=82)
 label7.place(x=295, y=112)
 label8.place(x=545, y=82)
@@ -108,14 +125,19 @@ label14.place(x=653, y=42)
 label15.place(x=150, y=7)
 label16.place(x=425, y=7)
 label17.place(x=613, y=7)
-label18.place(x=20, y=120)'''
+label18.place(x=20, y=120)
+label19.place(x=70, y=25)
+label20.place(x=115, y=25)
+label21.place(x=320, y=25)
+label22.place(x=365, y=25)'''
 
 btns = '''btn_res_l.place(x=330, y=150)
 btn_res_r.place(x=360, y=150)
-btn_mv_r.place(x=125, y=110)
-btn_mv_l.place(x=85, y=110)
-btn_mv_u.place(x=105, y=90)
-btn_mv_d.place(x=105, y=130)
+btn_mv_r.place(x=128, y=100)
+btn_mv_l.place(x=82, y=100)
+btn_mv_u.place(x=106, y=75)
+btn_mv_d.place(x=106, y=125)
+btn_mv.place(x=165, y=43)
 btn_cl_all.place(x=25, y=170)
 btn_rot_r.place(x=620, y=150)
 btn_rot_l.place(x=590, y=150)
@@ -149,8 +171,10 @@ def rotate(a, alpha, center):
 
 
 def resize(a, k, center):
+    k1 = k[0]
+    k2 = k[1]
     a = cart_dif(a, center)
-    res = (a[0]*k, a[1]*k)
+    res = (a[0]*k1, a[1]*k2)
     res = cart_sum(res, center)
     return res
 
@@ -196,9 +220,16 @@ def rotate_fox(dots, alpha, center, st=1):
 
     draw_fox(fox_coords)
 
-def resize_fox(dots, k, center, st=1):
+def resize_fox(dots, sign, k, k1, center, st=1):
     try:
-        k = float(k)/100 + 1
+        # k = ((abs(float(k))/100 + 1))*(-1 if float(k) < 0 else 1)*(-1 if float(sign) < 0 else 1)
+        # k1 = ((abs(float(k1))/100 + 1))*(-1 if float(k1) < 0 else 1)*(-1 if float(sign) < 0 else 1)
+        if sign == 1:
+            k = float(k)
+            k1 = float(k1)
+        else:
+            k = 1/float(k)
+            k1 = 1/float(k1)
     except:
         box.showinfo('Error', 'Некорректное значение процента масштабирования!')
         return
@@ -223,17 +254,24 @@ def resize_fox(dots, k, center, st=1):
 
     resized_dots = []
     for dot in dots:
-        resized_dots.append(resize(dot, k, center))
+        resized_dots.append(resize(dot, [k, k1], center))
 
     fox = c.find_withtag('fox')
     for elem in fox:
         c.delete(elem)
 
+    # if st:
+    #     string = 'draw_fox(['
+    #     for dot in fox_coords:
+    #         string += f'{dot}, '
+    #     story.append(string+'])')
+    #     print(string)
+
     fox_coords = resized_dots
     analyze_and_redraw()
 
     if st:
-        story.append(f'resize_fox(fox_coords, {-(k - 1)*100}, {net_to_canv(ent3.get(), ent6.get())}, 0)')
+        story.append(f'resize_fox(fox_coords, {sign*(-1 if sign == -1 else 1)}, {1/k}, {1/k1}, {net_to_canv(ent3.get(), ent6.get())}, 0)')
 
     draw_fox(fox_coords)
 
@@ -241,13 +279,20 @@ def resize_fox(dots, k, center, st=1):
 def move_fox(dots, delta, dir, st=1):
     global sz
     try:
-        delta = float(delta)/sz
+        if type(delta) == list:
+            delta[0] = float(delta[0]) / sz
+            delta[1] = float(delta[1]) / sz
+        else:
+            delta = float(delta)/sz
     except:
         box.showinfo('Error', 'Некорректное значение процента масштабирования!')
         return
 
     if st:
-        story.append(f'move_fox(fox_coords, {-delta*sz}, "{dir}", 0)')
+        if type(delta) == list:
+            story.append(f'move_fox(fox_coords, {[-delta[0]*sz, -delta[1]*sz]}, "{dir}", 0)')
+        else:
+            story.append(f'move_fox(fox_coords, {-delta*sz}, "{dir}", 0)')
 
     global fox_coords
     moved_dots = []
@@ -260,6 +305,8 @@ def move_fox(dots, delta, dir, st=1):
             moved_dots.append([dot[0] - delta, dot[1]])
         elif dir == 'right':
             moved_dots.append([dot[0] + delta, dot[1]])
+        elif dir == 'w':
+            moved_dots.append([dot[0] + delta[0], dot[1] - delta[1]])
 
     fox = c.find_withtag('fox')
     for elem in fox:
@@ -272,10 +319,11 @@ def move_fox(dots, delta, dir, st=1):
 
 def resize_dots(dots, k, center):
     global fox_coords
+    k1 = float(ent8.get()) / 100 + 1
 
     resized_dots = []
     for dot in dots:
-        resized_dots.append(resize(dot, k, center))
+        resized_dots.append(resize(dot, [k, k], center))
 
     fox_coords = resized_dots
 
@@ -313,6 +361,12 @@ def clean_all():
     ent5.delete(0, END)
     ent6.delete(0, END)
     ent7.delete(0, END)
+    ent6.delete(0, END)
+    ent7.delete(0, END)
+    ent8.delete(0, END)
+    ent9.delete(0, END)
+    ent10.delete(0, END)
+
 
     objs = c.find_withtag('rot')
     objs += c.find_withtag('sz')
@@ -457,6 +511,7 @@ def back():
     for com in commands:
         if not com:
             continue
+        print(com)
         eval(com)
 
     fox = c.find_withtag('fox')
@@ -502,7 +557,7 @@ def text_and_labels_creation():
     label2.place(x=280, y=5)
     label3.place(x=535, y=5)
     label4.place(x=35, y=43)
-    label5.place(x=285, y=43)
+    label5.place(x=290, y=43)
     label6.place(x=295, y=82)
     label7.place(x=295, y=112)
     label8.place(x=545, y=82)
@@ -516,15 +571,20 @@ def text_and_labels_creation():
     label16.place(x=425, y=7)
     label17.place(x=613, y=7)
     label18.place(x=20, y=120)
+    label19.place(x=70, y=25)
+    label20.place(x=115, y=25)
+    label21.place(x=320, y=25)
+    label22.place(x=365, y=25)
 
 
 def buttons_creation():
     btn_res_l.place(x=330, y=150)
     btn_res_r.place(x=360, y=150)
-    btn_mv_r.place(x=125, y=110)
-    btn_mv_l.place(x=85, y=110)
-    btn_mv_u.place(x=105, y=90)
-    btn_mv_d.place(x=105, y=130)
+    btn_mv_r.place(x=128, y=100)
+    btn_mv.place(x=165, y=43)
+    btn_mv_l.place(x=82, y=100)
+    btn_mv_u.place(x=106, y=75)
+    btn_mv_d.place(x=106, y=125)
     btn_cl_all.place(x=25, y=170)
     btn_rot_r.place(x=620, y=150)
     btn_rot_l.place(x=590, y=150)
@@ -595,6 +655,8 @@ def load_and_transf_coords(file):
 
 
 def draw_fox(coords):
+    for elem in c.find_withtag('fox'):
+        c.delete(elem)
     c.create_line(coords[:-7], width=2, activefill='lightgreen', tag='fox')
     c.create_polygon(coords[-4:], width=2, activefill='lightgreen', tag='fox', fill='black')
     c.create_polygon(coords[-7:-4], width=2, activefill='lightgreen', tag='fox', fill='black')
@@ -608,12 +670,15 @@ def start_state():
     rot_coords = []
     clean_all()
     ent1.insert(0, 15)
-    ent2.insert(0, 5)
+    ent2.insert(0, 1.1)
     ent3.insert(0, 0)
     ent4.insert(0, 5)
     ent5.insert(0, 0)
     ent6.insert(0, 0)
     ent7.insert(0, 0)
+    ent8.insert(0, 1.3)
+    ent9.insert(0, 5)
+    ent10.insert(0, 15)
     draw_fox(default_fox_coords)
 
 
@@ -625,7 +690,7 @@ def config(event):
         if kx < 0.9 or ky < 0.85:
             return
 
-        max_elems = 20
+        max_elems = 30
         ent_places = [0]*max_elems
         lbl_places = [0] * max_elems
         btn_places = [0] * max_elems
@@ -664,12 +729,12 @@ def config(event):
 c.bind('<1>', click)
 window.bind("<Command-r>", lambda event: rotate_fox(fox_coords, ent4.get(), net_to_canv(ent5.get(), ent7.get())))
 window.bind("<Shift-Command-r>", lambda event: rotate_fox(fox_coords, '-'+ent4.get(), net_to_canv(ent5.get(), ent7.get())))
-window.bind("<Command-Up>", lambda event: resize_fox(fox_coords, ent2.get(), net_to_canv(ent3.get(), ent6.get())))
-window.bind("<Command-Down>", lambda event: resize_fox(fox_coords, '-' + ent2.get(), net_to_canv(ent3.get(), ent6.get())))
-window.bind("<Up>", lambda event: move_fox(fox_coords, ent1.get(), 'up'))
-window.bind("<Down>", lambda event: move_fox(fox_coords, ent1.get(), 'down'))
-window.bind("<Right>", lambda event: move_fox(fox_coords, ent1.get(), 'right'))
-window.bind("<Left>", lambda event: move_fox(fox_coords, ent1.get(), 'left'))
+window.bind("<Command-Up>", lambda event: resize_fox(fox_coords, 1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
+window.bind("<Command-Down>", lambda event: resize_fox(fox_coords, -1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
+window.bind("<Up>", lambda event: move_fox(fox_coords, ent10.get(), 'up'))
+window.bind("<Down>", lambda event: move_fox(fox_coords, ent10.get(), 'down'))
+window.bind("<Right>", lambda event: move_fox(fox_coords, ent10.get(), 'right'))
+window.bind("<Left>", lambda event: move_fox(fox_coords, ent10.get(), 'left'))
 window.bind("<Command-z>", lambda event: back())
 window.bind("<Configure>", config)
 
