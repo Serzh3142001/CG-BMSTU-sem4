@@ -2,7 +2,184 @@ from math import *
 from tkinter import *
 import tkinter.messagebox as box
 from tkinter import messagebox
-from PIL import Image, ImageTk
+
+
+class Fox:
+    def __init__(self, coords):
+        self.coords = coords
+
+    def draw(self):
+        for elem in c.find_withtag('fox'):
+            c.delete(elem)
+        c.create_line(self.coords[:-7], width=2, activefill='lightgreen', tag='fox')
+        c.create_polygon(self.coords[-4:], width=2, activefill='lightgreen', tag='fox', fill='black')
+        c.create_polygon(self.coords[-7:-4], width=2, activefill='lightgreen', tag='fox', fill='black')
+
+    def rotate(self, alpha, center, st=1):
+        try:
+            alpha = radians(float(alpha))
+        except:
+            box.showinfo('Error', 'Некорректное значение угла поворота!')
+            return
+
+        try:
+            x, y = float(ent5.get()), float(ent7.get())
+        except:
+            box.showinfo('Error', 'Некорректные координаты!')
+            return
+
+        global rotate_point
+
+        reprint_dot([x, y], 2)
+        if st and [x, y] != rotate_point:
+            rot_coords.append([x, y] + [2])
+            if len(rot_coords) > 1:
+                story.append(f'reprint_dot({rot_coords[-2][:-1]}, {rot_coords[-2][-1]});rot_coords.pop()')
+            else:
+                story.append(f'del_with_tag("rot")' + ';rot_coords.pop()' if len(rot_coords) else '')
+
+        rotate_point = [x, y]
+
+        rotated_dots = []
+        for dot in self.coords:
+            rotated_dots.append(rotate(dot, alpha, center))
+
+        fox = c.find_withtag('fox')
+        for elem in fox:
+            c.delete(elem)
+
+        self.coords = rotated_dots
+        self.analyze_and_redraw()
+
+        if st:
+            story.append(f'fox.rotate({-degrees(alpha)}, {net_to_canv(ent5.get(), ent7.get())}, 0)')
+
+        self.draw()
+
+    def resize(self, sign, k, k1, center, st=1):
+        try:
+            # k = ((abs(float(k))/100 + 1))*(-1 if float(k) < 0 else 1)*(-1 if float(sign) < 0 else 1)
+            # k1 = ((abs(float(k1))/100 + 1))*(-1 if float(k1) < 0 else 1)*(-1 if float(sign) < 0 else 1)
+            if sign == 1:
+                k = float(k)
+                k1 = float(k1)
+            else:
+                k = 1 / float(k)
+                k1 = 1 / float(k1)
+        except:
+            box.showinfo('Error', 'Некорректное значение процента масштабирования!')
+            return
+
+        try:
+            x, y = float(ent3.get()), float(ent6.get())
+        except:
+            box.showinfo('Error', 'Некорректные координаты!')
+            return
+
+        global resize_point, sz
+
+        reprint_dot([x, y], 1)
+        if st and [x, y] != resize_point:
+            res_coords.append([x, y] + [1])
+            if len(res_coords) > 1:
+                story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});res_coords.pop()')
+            else:
+                story.append(f'del_with_tag("sz")' + ';res_coords.pop()' if len(res_coords) else '')
+
+        resize_point = [x, y]
+
+        resized_dots = []
+        for dot in self.coords:
+            resized_dots.append(resize(dot, [k, k1], center))
+
+        fox = c.find_withtag('fox')
+        for elem in fox:
+            c.delete(elem)
+
+        self.coords = resized_dots
+        self.analyze_and_redraw()
+
+        if st:
+            story.append(
+                f'fox.resize({sign * (-1 if sign == -1 else 1)}, {1 / k}, {1 / k1}, '
+                f'{net_to_canv(ent3.get(), ent6.get())}, 0)')
+
+        self.draw()
+
+    def move(self, delta, dir, st=1):
+        global sz
+        try:
+            if type(delta) == list:
+                delta[0] = float(delta[0]) / sz
+                delta[1] = float(delta[1]) / sz
+            else:
+                delta = float(delta) / sz
+        except:
+            box.showinfo('Error', 'Некорректное значение процента масштабирования!')
+            return
+
+        if st:
+            if type(delta) == list:
+                story.append(f'fox.move({[-delta[0] * sz, -delta[1] * sz]}, "{dir}", 0)')
+            else:
+                story.append(f'fox.move({-delta * sz}, "{dir}", 0)')
+
+        moved_dots = []
+        for dot in self.coords:
+            if dir == 'up':
+                moved_dots.append([dot[0], dot[1] - delta])
+            elif dir == 'down':
+                moved_dots.append([dot[0], dot[1] + delta])
+            elif dir == 'left':
+                moved_dots.append([dot[0] - delta, dot[1]])
+            elif dir == 'right':
+                moved_dots.append([dot[0] + delta, dot[1]])
+            elif dir == 'w':
+                moved_dots.append([dot[0] + delta[0], dot[1] - delta[1]])
+
+        fox = c.find_withtag('fox')
+        for elem in fox:
+            c.delete(elem)
+
+        self.coords = moved_dots
+        self.analyze_and_redraw()
+        self.draw()
+
+    def analyze_and_redraw(self):
+        global sz
+        max_coord = 0
+
+        for dot in self.coords:
+            dot = canv_to_net(dot[0], dot[1])
+            if max(abs(dot[0]), abs(dot[1])) > max_coord:
+                max_coord = max(abs(dot[0]), abs(dot[1]))
+
+        try:
+            max_coord = max(max_coord, abs(float(ent3.get())), abs(float(ent5.get())),
+                            abs(float(ent6.get())), abs(float(ent7.get())))
+        except:
+            box.showinfo('Error', 'Некорректные координаты!')
+
+        if 150 * sz <= max_coord <= 300 * sz:
+            return
+
+        old = sz
+        scale(max_coord, max_coord)
+        new = sz
+        self.resize_dots(old / new, net_to_canv(0, 0))
+        reprint_dot([float(ent3.get()), float(ent6.get())], 1)
+        reprint_dot([float(ent5.get()), float(ent7.get())], 2)
+
+    def resize_dots(self, k, center):
+        global fox_coords
+
+        resized_dots = []
+        for dot in self.coords:
+            resized_dots.append(resize(dot, [k, k], center))
+
+        self.coords = resized_dots
+
+
 
 window = Tk()
 
@@ -10,10 +187,6 @@ var = IntVar()
 story = []
 win_size = [700, 900]
 c = Canvas(window, width=win_size[0], height=win_size[1], bg='white')
-res_coords = []
-rot_coords = []
-cnt_res_clc = 0
-cnt_rot_clc = 0
 
 ent1 = Entry(width=3)
 ent2 = Entry(width=3)
@@ -73,23 +246,21 @@ label20 = Label(text='y:', font='Arial 11', fg='grey')
 label21 = Label(text='x:', font='Arial 11', fg='grey')
 label22 = Label(text='y:', font='Arial 11', fg='grey')
 
-btn_rot_r = Button(window, text='↻', fg='green', command=lambda: rotate_fox(fox_coords, ent4.get(),
-                                                                                net_to_canv(ent5.get(),
-                                                                                            ent7.get())))
-btn_rot_l = Button(window, text='↺', fg='green', command=lambda: rotate_fox(fox_coords, '-'+ent4.get(),
-                                                                            net_to_canv(ent5.get(),
-                                                                                        ent7.get())))
-btn_res_r = Button(window, text='▲', fg='green', command=lambda: resize_fox(fox_coords, 1, ent2.get(), ent8.get(),
-                                                                           net_to_canv(ent3.get(),
-                                                                                       ent6.get())))
-btn_res_l = Button(window, text='▼', fg='green', command=lambda: resize_fox(fox_coords, -1, ent2.get(), ent8.get(),
-                                                                           net_to_canv(ent3.get(),
-                                                                                       ent6.get())))
-btn_mv = Button(window, text='move', fg='green', command=lambda: move_fox(fox_coords, [ent1.get(), ent9.get()], 'w'))
-btn_mv_r = Button(window, text='▶', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'right'))
-btn_mv_l = Button(window, text='◀', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'left'))
-btn_mv_u = Button(window, text='▲', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'up'))
-btn_mv_d = Button(window, text='▼', fg='green', command=lambda: move_fox(fox_coords, ent10.get(), 'down'))
+btn_rot_r = Button(window, text='↻', fg='green', command=lambda: fox.rotate(ent4.get(), net_to_canv(ent5.get(),
+                                                                                                    ent7.get())))
+btn_rot_l = Button(window, text='↺', fg='green', command=lambda: fox.rotate('-' + ent4.get(), net_to_canv(ent5.get(),
+                                                                                                          ent7.get())))
+btn_res_r = Button(window, text='▲', fg='green', command=lambda: fox.resize(1, ent2.get(), ent8.get(),
+                                                                            net_to_canv(ent3.get(),
+                                                                                        ent6.get())))
+btn_res_l = Button(window, text='▼', fg='green', command=lambda: fox.resize(-1, ent2.get(), ent8.get(),
+                                                                            net_to_canv(ent3.get(),
+                                                                                        ent6.get())))
+btn_mv = Button(window, text='move', fg='green', command=lambda: fox.move([ent1.get(), ent9.get()], 'w'))
+btn_mv_r = Button(window, text='▶', fg='green', command=lambda: fox.move(ent10.get(), 'right'))
+btn_mv_l = Button(window, text='◀', fg='green', command=lambda: fox.move(ent10.get(), 'left'))
+btn_mv_u = Button(window, text='▲', fg='green', command=lambda: fox.move(ent10.get(), 'up'))
+btn_mv_d = Button(window, text='▼', fg='green', command=lambda: fox.move(ent10.get(), 'down'))
 btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
 btn_exit = Button(window, text=' выход ', fg='red', command=exit)
@@ -152,6 +323,8 @@ AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
 sz = 1
 resize_point = [0, 0]
 rotate_point = [0, 0]
+res_coords = []
+rot_coords = []
 
 
 def cart_sum(a, b):
@@ -178,179 +351,6 @@ def resize(a, k, center):
     res = cart_sum(res, center)
     return res
 
-
-def rotate_fox(dots, alpha, center, st=1):
-    try:
-        alpha = radians(float(alpha))
-    except:
-        box.showinfo('Error', 'Некорректное значение угла поворота!')
-        return
-
-    try:
-        x, y = float(ent5.get()), float(ent7.get())
-    except:
-        box.showinfo('Error', 'Некорректные координаты!')
-        return
-
-    global fox_coords, rotate_point
-
-    reprint_dot([x, y], 2)
-    if st and [x, y] != rotate_point:
-        rot_coords.append([x, y] + [2])
-        if len(rot_coords) > 1:
-            story.append(f'reprint_dot({rot_coords[-2][:-1]}, {rot_coords[-2][-1]});rot_coords.pop()')
-        else:
-            story.append(f'del_with_tag("rot")'+';rot_coords.pop()' if len(rot_coords) else '')
-
-    rotate_point = [x, y]
-
-    rotated_dots = []
-    for dot in dots:
-        rotated_dots.append(rotate(dot, alpha, center))
-
-    fox = c.find_withtag('fox')
-    for elem in fox:
-        c.delete(elem)
-
-    fox_coords = rotated_dots
-    analyze_and_redraw()
-
-    if st:
-        story.append(f'rotate_fox(fox_coords, {-degrees(alpha)}, {net_to_canv(ent5.get(), ent7.get())}, 0)')
-
-    draw_fox(fox_coords)
-
-def resize_fox(dots, sign, k, k1, center, st=1):
-    try:
-        # k = ((abs(float(k))/100 + 1))*(-1 if float(k) < 0 else 1)*(-1 if float(sign) < 0 else 1)
-        # k1 = ((abs(float(k1))/100 + 1))*(-1 if float(k1) < 0 else 1)*(-1 if float(sign) < 0 else 1)
-        if sign == 1:
-            k = float(k)
-            k1 = float(k1)
-        else:
-            k = 1/float(k)
-            k1 = 1/float(k1)
-    except:
-        box.showinfo('Error', 'Некорректное значение процента масштабирования!')
-        return
-
-    try:
-        x, y = float(ent3.get()), float(ent6.get())
-    except:
-        box.showinfo('Error', 'Некорректные координаты!')
-        return
-
-    global fox_coords, resize_point, sz
-
-    reprint_dot([x, y], 1)
-    if st and [x, y] != resize_point:
-        res_coords.append([x, y] + [1])
-        if len(res_coords) > 1:
-            story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});res_coords.pop()')
-        else:
-            story.append(f'del_with_tag("sz")'+';res_coords.pop()' if len(res_coords) else '')
-
-    resize_point = [x, y]
-
-    resized_dots = []
-    for dot in dots:
-        resized_dots.append(resize(dot, [k, k1], center))
-
-    fox = c.find_withtag('fox')
-    for elem in fox:
-        c.delete(elem)
-
-    # if st:
-    #     string = 'draw_fox(['
-    #     for dot in fox_coords:
-    #         string += f'{dot}, '
-    #     story.append(string+'])')
-    #     print(string)
-
-    fox_coords = resized_dots
-    analyze_and_redraw()
-
-    if st:
-        story.append(f'resize_fox(fox_coords, {sign*(-1 if sign == -1 else 1)}, {1/k}, {1/k1}, {net_to_canv(ent3.get(), ent6.get())}, 0)')
-
-    draw_fox(fox_coords)
-
-
-def move_fox(dots, delta, dir, st=1):
-    global sz
-    try:
-        if type(delta) == list:
-            delta[0] = float(delta[0]) / sz
-            delta[1] = float(delta[1]) / sz
-        else:
-            delta = float(delta)/sz
-    except:
-        box.showinfo('Error', 'Некорректное значение процента масштабирования!')
-        return
-
-    if st:
-        if type(delta) == list:
-            story.append(f'move_fox(fox_coords, {[-delta[0]*sz, -delta[1]*sz]}, "{dir}", 0)')
-        else:
-            story.append(f'move_fox(fox_coords, {-delta*sz}, "{dir}", 0)')
-
-    global fox_coords
-    moved_dots = []
-    for dot in dots:
-        if dir == 'up':
-            moved_dots.append([dot[0], dot[1] - delta])
-        elif dir == 'down':
-            moved_dots.append([dot[0], dot[1] + delta])
-        elif dir == 'left':
-            moved_dots.append([dot[0] - delta, dot[1]])
-        elif dir == 'right':
-            moved_dots.append([dot[0] + delta, dot[1]])
-        elif dir == 'w':
-            moved_dots.append([dot[0] + delta[0], dot[1] - delta[1]])
-
-    fox = c.find_withtag('fox')
-    for elem in fox:
-        c.delete(elem)
-
-    fox_coords = moved_dots
-    analyze_and_redraw()
-    draw_fox(fox_coords)
-
-
-def resize_dots(dots, k, center):
-    global fox_coords
-    k1 = float(ent8.get()) / 100 + 1
-
-    resized_dots = []
-    for dot in dots:
-        resized_dots.append(resize(dot, [k, k], center))
-
-    fox_coords = resized_dots
-
-def analyze_and_redraw():
-    global fox_coords, sz
-    max_coord = 0
-
-    for dot in fox_coords:
-        dot = canv_to_net(dot[0], dot[1])
-        if max(abs(dot[0]), abs(dot[1])) > max_coord:
-            max_coord = max(abs(dot[0]), abs(dot[1]))
-
-    try:
-        max_coord = max(max_coord, abs(float(ent3.get())), abs(float(ent5.get())),
-                        abs(float(ent6.get())), abs(float(ent7.get())))
-    except:
-        box.showinfo('Error', 'Некорректные координаты!')
-
-    if 150 * sz <= max_coord <= 300 * sz:
-        return
-
-    old = sz
-    scale(max_coord, max_coord)
-    new = sz
-    resize_dots(fox_coords, old/new, net_to_canv(0, 0))
-    reprint_dot([float(ent3.get()), float(ent6.get())], 1)
-    reprint_dot([float(ent5.get()), float(ent7.get())], 2)
 
 
 def clean_all():
@@ -403,20 +403,18 @@ def del_with_tag(tag):
 
 
 def click(event):
-    global res_coords, rot_coords, cnt_res_clc, cnt_rot_clc
+    global res_coords, rot_coords
 
     if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
         return
 
     if var.get():
-        cnt_rot_clc += 1
         rot_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
         if len(rot_coords) > 1:
             story.append(f'reprint_dot({rot_coords[-2][:-1]}, {rot_coords[-2][-1]});rot_coords.pop()')
         else:
             story.append(f'del_with_tag("rot")'+';rot_coords.pop()' if len(rot_coords) else '')
     else:
-        cnt_res_clc += 1
         res_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
         if len(res_coords) > 1:
             story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});res_coords.pop()')
@@ -497,7 +495,6 @@ def canv_to_net(x, y=None):
 
 
 def back():
-    global res_coords, rot_coords
     if not len(story):
         return
 
@@ -514,11 +511,11 @@ def back():
         print(com)
         eval(com)
 
-    fox = c.find_withtag('fox')
-    for elem in fox:
+    foxx = c.find_withtag('fox')
+    for elem in foxx:
         c.delete(elem)
-    analyze_and_redraw()
-    draw_fox(fox_coords)
+    fox.analyze_and_redraw()
+    fox.draw()
 
     del story[-1]
 
@@ -654,16 +651,8 @@ def load_and_transf_coords(file):
     return coords
 
 
-def draw_fox(coords):
-    for elem in c.find_withtag('fox'):
-        c.delete(elem)
-    c.create_line(coords[:-7], width=2, activefill='lightgreen', tag='fox')
-    c.create_polygon(coords[-4:], width=2, activefill='lightgreen', tag='fox', fill='black')
-    c.create_polygon(coords[-7:-4], width=2, activefill='lightgreen', tag='fox', fill='black')
-
-
 def start_state():
-    global story, rot_coords, res_coords
+    global story, rot_coords, res_coords, fox
     scale(200, 200)
     story = []
     res_coords = []
@@ -679,7 +668,8 @@ def start_state():
     ent8.insert(0, 1.3)
     ent9.insert(0, 5)
     ent10.insert(0, 15)
-    draw_fox(default_fox_coords)
+    fox = Fox(load_and_transf_coords('data.txt'))
+    fox.draw()
 
 
 def config(event):
@@ -726,15 +716,18 @@ def config(event):
         c.place(x=355*kx-365, y=210*ky-210)
 
 
+fox = Fox(load_and_transf_coords('data.txt'))
+
+
 c.bind('<1>', click)
-window.bind("<Command-r>", lambda event: rotate_fox(fox_coords, ent4.get(), net_to_canv(ent5.get(), ent7.get())))
-window.bind("<Shift-Command-r>", lambda event: rotate_fox(fox_coords, '-'+ent4.get(), net_to_canv(ent5.get(), ent7.get())))
-window.bind("<Command-Up>", lambda event: resize_fox(fox_coords, 1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
-window.bind("<Command-Down>", lambda event: resize_fox(fox_coords, -1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
-window.bind("<Up>", lambda event: move_fox(fox_coords, ent10.get(), 'up'))
-window.bind("<Down>", lambda event: move_fox(fox_coords, ent10.get(), 'down'))
-window.bind("<Right>", lambda event: move_fox(fox_coords, ent10.get(), 'right'))
-window.bind("<Left>", lambda event: move_fox(fox_coords, ent10.get(), 'left'))
+window.bind("<Command-r>", lambda event: fox.rotate(ent4.get(), net_to_canv(ent5.get(), ent7.get())))
+window.bind("<Shift-Command-r>", lambda event: fox.rotate('-' + ent4.get(), net_to_canv(ent5.get(), ent7.get())))
+window.bind("<Command-Up>", lambda event: fox.resize(1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
+window.bind("<Command-Down>", lambda event: fox.resize(-1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
+window.bind("<Up>", lambda event: fox.move(ent10.get(), 'up'))
+window.bind("<Down>", lambda event: fox.move(ent10.get(), 'down'))
+window.bind("<Right>", lambda event: fox.move(ent10.get(), 'right'))
+window.bind("<Left>", lambda event: fox.move(ent10.get(), 'left'))
 window.bind("<Command-z>", lambda event: back())
 window.bind("<Configure>", config)
 
@@ -744,8 +737,8 @@ buttons_creation()
 coordinate_field_creation()
 radiobutton_creation()
 default_fox_coords = load_and_transf_coords('data.txt')
-fox_coords = load_and_transf_coords('data.txt')
-draw_fox(default_fox_coords)
+# coords = load_and_transf_coords('data.txt')
+fox.draw()
 
 mmenu = Menu(window)
 add_menu = Menu(mmenu)
