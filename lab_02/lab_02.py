@@ -44,8 +44,8 @@ class Fox:
         for dot in self.coords:
             rotated_dots.append(rotate(dot, alpha, center))
 
-        fox = c.find_withtag('fox')
-        for elem in fox:
+        foxx = c.find_withtag('fox')
+        for elem in foxx:
             c.delete(elem)
 
         self.coords = rotated_dots
@@ -58,8 +58,6 @@ class Fox:
 
     def resize(self, sign, k, k1, center, st=1):
         try:
-            # k = ((abs(float(k))/100 + 1))*(-1 if float(k) < 0 else 1)*(-1 if float(sign) < 0 else 1)
-            # k1 = ((abs(float(k1))/100 + 1))*(-1 if float(k1) < 0 else 1)*(-1 if float(sign) < 0 else 1)
             if sign == 1:
                 k = float(k)
                 k1 = float(k1)
@@ -92,8 +90,8 @@ class Fox:
         for dot in self.coords:
             resized_dots.append(resize(dot, [k, k1], center))
 
-        fox = c.find_withtag('fox')
-        for elem in fox:
+        foxx = c.find_withtag('fox')
+        for elem in foxx:
             c.delete(elem)
 
         self.coords = resized_dots
@@ -137,8 +135,8 @@ class Fox:
             elif dir == 'w':
                 moved_dots.append([dot[0] + delta[0], dot[1] - delta[1]])
 
-        fox = c.find_withtag('fox')
-        for elem in fox:
+        foxx = c.find_withtag('fox')
+        for elem in foxx:
             c.delete(elem)
 
         self.coords = moved_dots
@@ -171,14 +169,11 @@ class Fox:
         reprint_dot([float(ent5.get()), float(ent7.get())], 2)
 
     def resize_dots(self, k, center):
-        global fox_coords
-
         resized_dots = []
         for dot in self.coords:
             resized_dots.append(resize(dot, [k, k], center))
 
         self.coords = resized_dots
-
 
 
 window = Tk()
@@ -328,11 +323,11 @@ rot_coords = []
 
 
 def cart_sum(a, b):
-    return (a[0] + b[0], a[1] + b[1])
+    return a[0] + b[0], a[1] + b[1]
 
 
 def cart_dif(a, b):
-    return (a[0] - b[0], a[1] - b[1])
+    return a[0] - b[0], a[1] - b[1]
 
 
 def rotate(a, alpha, center):
@@ -347,10 +342,9 @@ def resize(a, k, center):
     k1 = k[0]
     k2 = k[1]
     a = cart_dif(a, center)
-    res = (a[0]*k1, a[1]*k2)
+    res = (a[0] * k1, a[1] * k2)
     res = cart_sum(res, center)
     return res
-
 
 
 def clean_all():
@@ -366,7 +360,6 @@ def clean_all():
     ent8.delete(0, END)
     ent9.delete(0, END)
     ent10.delete(0, END)
-
 
     objs = c.find_withtag('rot')
     objs += c.find_withtag('sz')
@@ -413,13 +406,13 @@ def click(event):
         if len(rot_coords) > 1:
             story.append(f'reprint_dot({rot_coords[-2][:-1]}, {rot_coords[-2][-1]});rot_coords.pop()')
         else:
-            story.append(f'del_with_tag("rot")'+';rot_coords.pop()' if len(rot_coords) else '')
+            story.append(f'del_with_tag("rot")' + ';rot_coords.pop()' if len(rot_coords) else '')
     else:
         res_coords.append(canv_to_net(event.x, event.y) + [var.get() + 1])
         if len(res_coords) > 1:
             story.append(f'reprint_dot({res_coords[-2][:-1]}, {res_coords[-2][-1]});res_coords.pop()')
         else:
-            story.append(f'del_with_tag("sz")'+';res_coords.pop()' if len(res_coords) else '')
+            story.append(f'del_with_tag("sz")' + ';res_coords.pop()' if len(res_coords) else '')
 
     global rotate_point, resize_point
     if var.get():
@@ -445,8 +438,9 @@ def reprint_dot(coords, fl=0):
         ent6.delete(0, END)
         ent3.insert(END, f'{coords[0]:g}')
         ent6.insert(END, f'{coords[1]:g}')
-        c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='sz', activeoutline='lightgreen', activefill='lightgreen')
-        c.create_text(x1-5, y1 - 9, text='⇖', fill='green', tag='sz', font='Arial 20')
+        c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='sz', activeoutline='lightgreen',
+                      activefill='lightgreen')
+        c.create_text(x1 - 5, y1 - 9, text='⇖', fill='green', tag='sz', font='Arial 20')
         c.create_text(x1 + 10, y1 - 9, text='⇗', fill='green', tag='sz', font='Arial 20')
         c.create_text(x1 - 5, y1 + 7, text='⇙', fill='green', tag='sz', font='Arial 20')
         c.create_text(x1 + 10, y1 + 7, text='⇘', fill='green', tag='sz', font='Arial 20')
@@ -458,7 +452,8 @@ def reprint_dot(coords, fl=0):
         ent7.delete(0, END)
         ent5.insert(END, f'{coords[0]:g}')
         ent7.insert(END, f'{coords[1]:g}')
-        c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='rot', activeoutline='lightgreen', activefill='lightgreen')
+        c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='rot', activeoutline='lightgreen',
+                      activefill='lightgreen')
         c.create_text(x1 + 2, y1 - 2, text='↻', fill='green', tag='rot', font='Helvetica 40')
 
 
@@ -475,7 +470,7 @@ def net_to_canv(x, y=None):
     global sz
     center = (365, 510)
 
-    return [round(x/sz + center[0]), round(center[1] - y/sz)]
+    return [round(x / sz + center[0]), round(center[1] - y / sz)]
 
 
 def canv_to_net(x, y=None):
@@ -491,7 +486,7 @@ def canv_to_net(x, y=None):
     global sz
     center = (365, 510)
 
-    return [(x - center[0])*sz, (center[1] - y)*sz]
+    return [(x - center[0]) * sz, (center[1] - y) * sz]
 
 
 def back():
@@ -538,15 +533,15 @@ def redraw():
     clean_coords()
     max_len = 0
     for i in range(65, 670, 50):
-        if len(f'{round((i - 365)*sz, 3):g}') > max_len:
-            max_len = len(f'{round((i - 365)*sz, 3):g}')
+        if len(f'{round((i - 365) * sz, 3):g}') > max_len:
+            max_len = len(f'{round((i - 365) * sz, 3):g}')
 
     for i in range(65, 670, 50):
-        c.create_text(i, 530, fill='grey', text=f'{round((i - 365)*sz, 3):g}' if i - 365 else '', tag='coord',
+        c.create_text(i, 530, fill='grey', text=f'{round((i - 365) * sz, 3):g}' if i - 365 else '', tag='coord',
                       font='Verdana 8' if max_len > 6 else 'Verdana 12')
 
     for i in range(210, 820, 50):
-        c.create_text(345, i + 10, fill='grey', text=f'{round(-(i - 510)*sz, 3):g}' if i - 510 else '', tag='coord')
+        c.create_text(345, i + 10, fill='grey', text=f'{round(-(i - 510) * sz, 3):g}' if i - 510 else '', tag='coord')
 
 
 def text_and_labels_creation():
@@ -616,7 +611,7 @@ def coordinate_field_creation():
     for i in range(210, 820, 50):
         c.create_line(358, i, 372, i, fill='grey', width=2)
         c.create_line(65, i, 665, i, fill='grey', width=1, dash=(1, 9))
-        c.create_text(345, i+10, text=f'{-(i - 510)}' if i - 510 else '', fill='grey', tag='coord')
+        c.create_text(345, i + 10, text=f'{-(i - 510)}' if i - 510 else '', fill='grey', tag='coord')
 
     c.create_text(688, 498, text='X', font='Verdana 20', fill='green')
     c.create_text(380, 195, text='Y', font='Verdana 20', fill='green')
@@ -674,14 +669,14 @@ def start_state():
 
 def config(event):
     if event.widget == window:
-        kx=window.winfo_width()/win_size[0]
-        ky=window.winfo_height()/win_size[1]
+        kx = window.winfo_width() / win_size[0]
+        ky = window.winfo_height() / win_size[1]
 
         if kx < 0.9 or ky < 0.85:
             return
 
         max_elems = 30
-        ent_places = [0]*max_elems
+        ent_places = [0] * max_elems
         lbl_places = [0] * max_elems
         btn_places = [0] * max_elems
         radiobtn_places = [0] * max_elems
@@ -712,12 +707,11 @@ def config(event):
                 eval(f'{btn_places[i][0]}.place(x={btn_places[i][1]} * kx, y={btn_places[i][2]} * ky)')
             if radiobtn_places[i]:
                 eval(f'set{i}.place(x={radiobtn_places[i][0]} * kx, y={radiobtn_places[i][1]} * ky)')
-        btn_exit.place(x=window.winfo_width()-70, y=window.winfo_height()-60)
-        c.place(x=355*kx-365, y=210*ky-210)
+        btn_exit.place(x=window.winfo_width() - 70, y=window.winfo_height() - 60)
+        c.place(x=355 * kx - 365, y=210 * ky - 210)
 
 
 fox = Fox(load_and_transf_coords('data.txt'))
-
 
 c.bind('<1>', click)
 window.bind("<Command-r>", lambda event: fox.rotate(ent4.get(), net_to_canv(ent5.get(), ent7.get())))
@@ -730,7 +724,6 @@ window.bind("<Right>", lambda event: fox.move(ent10.get(), 'right'))
 window.bind("<Left>", lambda event: fox.move(ent10.get(), 'left'))
 window.bind("<Command-z>", lambda event: back())
 window.bind("<Configure>", config)
-
 
 text_and_labels_creation()
 buttons_creation()
