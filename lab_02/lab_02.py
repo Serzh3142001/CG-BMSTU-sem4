@@ -11,10 +11,8 @@ class Fox:
     def upd_coords(self, d1, d2):
         for i in range(len(self.coords)):
             self.coords[i] = [self.coords[i][0] + d1, self.coords[i][1] + d2]
-            # self.coords[i] = canv_to_net(self.coords[i])
 
     def draw(self):
-        # self.upd_coords()
         for elem in c.find_withtag('fox'):
             c.delete(elem)
         c.create_line(self.coords[:-7], width=2, activefill='lightgreen', tag='fox')
