@@ -8,7 +8,13 @@ class Fox:
     def __init__(self, coords):
         self.coords = coords
 
+    def upd_coords(self, d1, d2):
+        for i in range(len(self.coords)):
+            self.coords[i] = [self.coords[i][0] + d1, self.coords[i][1] + d2]
+            # self.coords[i] = canv_to_net(self.coords[i])
+
     def draw(self):
+        # self.upd_coords()
         for elem in c.find_withtag('fox'):
             c.delete(elem)
         c.create_line(self.coords[:-7], width=2, activefill='lightgreen', tag='fox')
@@ -145,24 +151,27 @@ class Fox:
 
     def analyze_and_redraw(self):
         global sz
-        max_coord = 0
+        max_coord_x = 0
+        max_coord_y = 0
 
         for dot in self.coords:
             dot = canv_to_net(dot[0], dot[1])
-            if max(abs(dot[0]), abs(dot[1])) > max_coord:
-                max_coord = max(abs(dot[0]), abs(dot[1]))
+            if abs(dot[0]) > max_coord_x:
+                max_coord_x = abs(dot[0])
+            if abs(dot[1]) > max_coord_y:
+                max_coord_y = abs(dot[1])
 
         try:
-            max_coord = max(max_coord, abs(float(ent3.get())), abs(float(ent5.get())),
-                            abs(float(ent6.get())), abs(float(ent7.get())))
+            max_coord_x = max(max_coord_x, abs(float(ent3.get())), abs(float(ent5.get())))
+            max_coord_y = max(max_coord_y, abs(float(ent6.get())), abs(float(ent7.get())))
         except:
             box.showinfo('Error', 'Некорректные координаты!')
 
-        if 150 * sz <= max_coord <= 300 * sz:
+        if (150 + dx) * sz <= max_coord_x <= (300 + dx) * sz and (150 + dy) * sz <= max_coord_y <= (300 + dy) * sz:
             return
 
         old = sz
-        scale(max_coord, max_coord)
+        scale(max_coord_x, max_coord_y)
         new = sz
         self.resize_dots(old / new, net_to_canv(0, 0))
         reprint_dot([float(ent3.get()), float(ent6.get())], 1)
@@ -181,7 +190,7 @@ window = Tk()
 var = IntVar()
 story = []
 win_size = [700, 900]
-c = Canvas(window, width=win_size[0], height=win_size[1], bg='white')
+c = Canvas(window, width=3840, height=2160, bg='white')
 
 ent1 = Entry(width=3)
 ent2 = Entry(width=3)
@@ -202,7 +211,7 @@ ent6.place(x=320, y=110)
 ent7.place(x=570, y=110)
 ent8.place(x=365, y=40)
 ent9.place(x=115, y=40)
-ent10.place(x=100, y=97)
+ent10.place(x=104, y=97)
 ent1.insert(0, 15)
 ent2.insert(0, 1.1)
 ent3.insert(0, 0)
@@ -272,7 +281,7 @@ ent6.place(x=320, y=110)
 ent7.place(x=570, y=110)
 ent8.place(x=365, y=40)
 ent9.place(x=115, y=40)
-ent10.place(x=100, y=97)'''
+ent10.place(x=104, y=97)'''
 
 lbls = '''label1.place(x=60, y=5)
 label2.place(x=280, y=5)
@@ -300,7 +309,7 @@ label22.place(x=365, y=25)'''
 btns = '''btn_res_l.place(x=330, y=150)
 btn_res_r.place(x=360, y=150)
 btn_mv_r.place(x=128, y=100)
-btn_mv_l.place(x=82, y=100)
+btn_mv_l.place(x=85, y=100)
 btn_mv_u.place(x=106, y=75)
 btn_mv_d.place(x=106, y=125)
 btn_mv.place(x=165, y=43)
@@ -320,6 +329,9 @@ resize_point = [0, 0]
 rotate_point = [0, 0]
 res_coords = []
 rot_coords = []
+center = [365, 510]
+dx = 0
+dy = 0
 
 
 def cart_sum(a, b):
@@ -373,6 +385,10 @@ def clean_coords():
     for cor in coords:
         c.delete(cor)
 
+    net = c.find_withtag('net')
+    for n in net:
+        c.delete(n)
+
 
 def del_with_tag(tag):
     for obj in c.find_withtag(tag):
@@ -398,7 +414,7 @@ def del_with_tag(tag):
 def click(event):
     global res_coords, rot_coords
 
-    if event.x < 65 or event.x > 665 or event.y < 210 or event.y > 810:
+    if event.x < 65 or event.x > 665+dx or event.y < 210 or event.y > 810+dy:
         return
 
     if var.get():
@@ -425,6 +441,11 @@ def click(event):
 
 def reprint_dot(coords, fl=0):
     global sz
+    try:
+        coords[0], coords[1] = float(coords[0]), float(coords[1])
+    except:
+        box.showinfo('Error', 'Некорректные координаты!')
+
     buf = net_to_canv(coords[0], coords[1])
 
     x1, y1 = (buf[0] - 2), (buf[1] - 2)
@@ -467,8 +488,7 @@ def net_to_canv(x, y=None):
     except:
         box.showinfo('Error', 'Некорректные координаты!')
 
-    global sz
-    center = (365, 510)
+    global sz, center
 
     return [round(x / sz + center[0]), round(center[1] - y / sz)]
 
@@ -483,8 +503,7 @@ def canv_to_net(x, y=None):
     except:
         box.showinfo('Error', 'Некорректные координаты!')
 
-    global sz
-    center = (365, 510)
+    global sz, center
 
     return [(x - center[0]) * sz, (center[1] - y) * sz]
 
@@ -518,10 +537,10 @@ def back():
 def scale(x, y):
     global sz
     prev_sz = sz
-    while x > -150 * sz and x < 150 * sz and y > -150 * sz and y < 150 * sz:
+    while x < (150 + dx/4) * sz and y < (150 + dy/4) * sz:
         sz /= 2
 
-    while x < -300 * sz or x > 300 * sz or y < -300 * sz or y > 300 * sz:
+    while x > (300 + dx/2) * sz or y > (300 + dy/2) * sz:
         sz *= 2
 
     if sz != prev_sz:
@@ -530,18 +549,22 @@ def scale(x, y):
 
 def redraw():
     global sz
-    clean_coords()
+
+    coords = c.find_withtag('coord')
+    for cor in coords:
+        c.delete(cor)
+
     max_len = 0
-    for i in range(65, 670, 50):
+    for i in range(65, 665+dx, 50):
         if len(f'{round((i - 365) * sz, 3):g}') > max_len:
             max_len = len(f'{round((i - 365) * sz, 3):g}')
 
-    for i in range(65, 670, 50):
-        c.create_text(i, 530, fill='grey', text=f'{round((i - 365) * sz, 3):g}' if i - 365 else '', tag='coord',
+    for i in range(65, 665+dx, 50):
+        c.create_text(i, 530+dy/2, fill='grey', text=f'{round((i - center[0]) * sz, 3):g}', tag='coord',
                       font='Verdana 8' if max_len > 6 else 'Verdana 12')
 
-    for i in range(210, 820, 50):
-        c.create_text(345, i + 10, fill='grey', text=f'{round(-(i - 510) * sz, 3):g}' if i - 510 else '', tag='coord')
+    for i in range(210, 810+dy, 50):
+        c.create_text(345+dx/2, i + 10, fill='grey', text=f'{round(-(i - center[1]) * sz, 3):g}', tag='coord')
 
 
 def text_and_labels_creation():
@@ -574,7 +597,7 @@ def buttons_creation():
     btn_res_r.place(x=360, y=150)
     btn_mv_r.place(x=128, y=100)
     btn_mv.place(x=165, y=43)
-    btn_mv_l.place(x=82, y=100)
+    btn_mv_l.place(x=85, y=100)
     btn_mv_u.place(x=106, y=75)
     btn_mv_d.place(x=106, y=125)
     btn_cl_all.place(x=25, y=170)
@@ -585,36 +608,41 @@ def buttons_creation():
 
 
 def coordinate_field_creation():
-    c.create_line(33, 510, 690, 510, fill='grey',
+    global center
+    center[0] = 365 + dx/2
+    center[1] = 510 + dy/2
+    clean_coords()
+    c.create_line(33, 510+dy/2, 690+dx, 510+dy/2, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
-                  arrowshape="10 20 6")
-    c.create_line(365, 820, 365, 185, fill='grey',
+                  arrowshape="10 20 6", tag='net')
+    c.create_line(365+dx/2, 820+dy, 365+dx/2, 185, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
-                  arrowshape="10 20 6")
-    c.create_line(665, 210, 665, 810, fill='black',
-                  width=1, dash=(5, 9))
-    c.create_line(65, 810, 665, 810, fill='black',
-                  width=1, dash=(5, 9))
-    c.create_line(65, 210, 665, 210, fill='black',
-                  width=1, dash=(5, 9))
-    c.create_line(65, 210, 65, 810, fill='black',
-                  width=1, dash=(5, 9))
-    c.create_text(355, 520, text='0')
+                  arrowshape="10 20 6", tag='net')
+    c.create_line(665+dx, 210, 665+dx, 810+dy, fill='black',
+                  width=1, dash=(5, 9), tag='net')
+    c.create_line(65, 810+dy, 665+dx, 810+dy, fill='black',
+                  width=1, dash=(5, 9), tag='net')
+    c.create_line(65, 210, 665+dx, 210, fill='black',
+                  width=1, dash=(5, 9), tag='net')
+    c.create_line(65, 210, 65, 810+dy, fill='black',
+                  width=1, dash=(5, 9), tag='net')
+    # c.create_text(355+dx/2, 520+dy/2, text='0', tag='coord')
 
-    for i in range(65, 750, 50):
-        c.create_line(i, 503, i, 520, fill='grey', width=2)
-        c.create_line(i, 210, i, 810, fill='grey', width=1, dash=(1, 9))
-        c.create_text(i, 530, text=f'{i - 365}' if i - 365 else '', fill='grey', tag='coord')
+    for i in range(65, 665+dx, 50):
+        c.create_line(i, 503+dy/2, i, 520+dy/2, fill='grey', width=2, tag='net')
+        c.create_line(i, 210, i, 810+dy, fill='grey', width=1, dash=(1, 9), tag='net')
+        # c.create_text(i, 530+dy/2, text=f'{i - center[0]}', fill='grey', tag='coord')
 
-    for i in range(210, 820, 50):
-        c.create_line(358, i, 372, i, fill='grey', width=2)
-        c.create_line(65, i, 665, i, fill='grey', width=1, dash=(1, 9))
-        c.create_text(345, i + 10, text=f'{-(i - 510)}' if i - 510 else '', fill='grey', tag='coord')
+    for i in range(210, 810+dy, 50):
+        c.create_line(358+dx/2, i, 372+dx/2, i, fill='grey', width=2, tag='net')
+        c.create_line(65, i, 665+dx, i, fill='grey', width=1, dash=(1, 9), tag='net')
+        # c.create_text(345+dx/2, i + 10, text=f'{-(i - center[1])}', fill='grey', tag='coord')
 
-    c.create_text(688, 498, text='X', font='Verdana 20', fill='green')
-    c.create_text(380, 195, text='Y', font='Verdana 20', fill='green')
+    c.create_text(688+dx, 498+dy/2, text='X', font='Verdana 20', fill='green', tag='net')
+    c.create_text(380+dx/2, 195, text='Y', font='Verdana 20', fill='green', tag='net')
+    redraw()
 
 
 def radiobutton_creation():
@@ -667,7 +695,9 @@ def start_state():
     fox.draw()
 
 
+old_dx, old_dy = dx, dy
 def config(event):
+    global dx, dy, old_dx, old_dy, rotate_point, resize_point
     if event.widget == window:
         kx = window.winfo_width() / win_size[0]
         ky = window.winfo_height() / win_size[1]
@@ -700,15 +730,33 @@ def config(event):
 
         for i in range(max_elems):
             if ent_places[i]:
-                eval(f'ent{i}.place(x={ent_places[i][0]} * kx, y={ent_places[i][1]} * ky)')
+                eval(f'ent{i}.place(x={ent_places[i][0]} * kx, y={ent_places[i][1]} * 1)')
             if lbl_places[i]:
-                eval(f'label{i}.place(x={lbl_places[i][0]} * kx, y={lbl_places[i][1]} * ky)')
+                eval(f'label{i}.place(x={lbl_places[i][0]} * kx, y={lbl_places[i][1]} * 1)')
             if btn_places[i]:
-                eval(f'{btn_places[i][0]}.place(x={btn_places[i][1]} * kx, y={btn_places[i][2]} * ky)')
+                eval(f'{btn_places[i][0]}.place(x={btn_places[i][1]} * kx, y={btn_places[i][2]} * 1)')
             if radiobtn_places[i]:
-                eval(f'set{i}.place(x={radiobtn_places[i][0]} * kx, y={radiobtn_places[i][1]} * ky)')
+                eval(f'set{i}.place(x={radiobtn_places[i][0]} * kx, y={radiobtn_places[i][1]} * 1)')
         btn_exit.place(x=window.winfo_width() - 70, y=window.winfo_height() - 60)
-        c.place(x=355 * kx - 365, y=210 * ky - 210)
+
+        old_dx, old_dy = dx, dy
+        dx = window.winfo_width() - win_size[0]
+        dy = window.winfo_height() - win_size[1]
+        coordinate_field_creation()
+        fox.upd_coords((dx-old_dx)/2, (dy-old_dy)/2)
+        # r_point_canv = net_to_canv(rotate_point)
+
+        # rotate_point = [rotate_point[0] + (dx-old_dx)/2, rotate_point[1] + (dy-old_dy)/2]
+        # rotate_point = canv_to_net(r_point_canv[0] + (dx-old_dx)/2, r_point_canv[1] + (dy-old_dy)/2)
+        # reprint_dot(rotate_point, 2)
+        reprint_dot([ent3.get(), ent6.get()], 1)
+        reprint_dot([ent5.get(), ent7.get()], 2)
+        fox.analyze_and_redraw()
+        fox.draw()
+
+        print(fox.coords)
+        print(center)
+        c.place(x=0, y=0)
 
 
 fox = Fox(load_and_transf_coords('data.txt'))
