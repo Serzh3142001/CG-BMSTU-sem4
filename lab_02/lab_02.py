@@ -300,7 +300,7 @@ label14.place(x=653, y=42)
 label15.place(x=150, y=7)
 label16.place(x=425, y=7)
 label17.place(x=613, y=7)
-label18.place(x=20, y=120)
+label18.place(x=23, y=120)
 label19.place(x=70, y=25)
 label20.place(x=115, y=25)
 label21.place(x=320, y=25)
@@ -398,7 +398,7 @@ def del_with_tag(tag):
         ent2.delete(0, END)
         ent3.delete(0, END)
         ent6.delete(0, END)
-        ent2.insert(0, 5)
+        ent2.insert(0, 1.1)
         ent3.insert(0, 0)
         ent6.insert(0, 0)
 
@@ -559,11 +559,18 @@ def redraw():
         if len(f'{round((i - 365) * sz, 3):g}') > max_len:
             max_len = len(f'{round((i - 365) * sz, 3):g}')
 
-    for i in range(65, 665+dx, 50):
+    for i in range(round(center[0] + 50), 665 + dx, 50):
         c.create_text(i, 530+dy/2, fill='grey', text=f'{round((i - center[0]) * sz, 3):g}', tag='coord',
                       font='Verdana 8' if max_len > 6 else 'Verdana 12')
 
-    for i in range(210, 810+dy, 50):
+    for i in range(round(center[0] - 50), 65, -50):
+        c.create_text(i, 530+dy/2, fill='grey', text=f'{round((i - center[0]) * sz, 3):g}', tag='coord',
+                      font='Verdana 8' if max_len > 6 else 'Verdana 12')
+
+    for i in range(round(center[1] + 50), 810 + dy, 50):
+        c.create_text(345+dx/2, i + 10, fill='grey', text=f'{round(-(i - center[1]) * sz, 3):g}', tag='coord')
+
+    for i in range(round(center[1] - 50), 210, -50):
         c.create_text(345+dx/2, i + 10, fill='grey', text=f'{round(-(i - center[1]) * sz, 3):g}', tag='coord')
 
 
@@ -612,11 +619,11 @@ def coordinate_field_creation():
     center[0] = 365 + dx/2
     center[1] = 510 + dy/2
     clean_coords()
-    c.create_line(33, 510+dy/2, 690+dx, 510+dy/2, fill='grey',
+    c.create_line(33, 510+dy/2, 695+dx, 510+dy/2, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6", tag='net')
-    c.create_line(365+dx/2, 820+dy, 365+dx/2, 185, fill='grey',
+    c.create_line(365+dx/2, 835+dy, 365+dx/2, 185, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6", tag='net')
@@ -628,19 +635,24 @@ def coordinate_field_creation():
                   width=1, dash=(5, 9), tag='net')
     c.create_line(65, 210, 65, 810+dy, fill='black',
                   width=1, dash=(5, 9), tag='net')
-    # c.create_text(355+dx/2, 520+dy/2, text='0', tag='coord')
 
-    for i in range(65, 665+dx, 50):
+    for i in range(round(center[0]+50), 665+dx, 50):
         c.create_line(i, 503+dy/2, i, 520+dy/2, fill='grey', width=2, tag='net')
         c.create_line(i, 210, i, 810+dy, fill='grey', width=1, dash=(1, 9), tag='net')
-        # c.create_text(i, 530+dy/2, text=f'{i - center[0]}', fill='grey', tag='coord')
 
-    for i in range(210, 810+dy, 50):
+    for i in range(round(center[0]-50), 65, -50):
+        c.create_line(i, 503+dy/2, i, 520+dy/2, fill='grey', width=2, tag='net')
+        c.create_line(i, 210, i, 810+dy, fill='grey', width=1, dash=(1, 9), tag='net')
+
+    for i in range(round(center[1]+50), 810+dy, 50):
         c.create_line(358+dx/2, i, 372+dx/2, i, fill='grey', width=2, tag='net')
         c.create_line(65, i, 665+dx, i, fill='grey', width=1, dash=(1, 9), tag='net')
-        # c.create_text(345+dx/2, i + 10, text=f'{-(i - center[1])}', fill='grey', tag='coord')
 
-    c.create_text(688+dx, 498+dy/2, text='X', font='Verdana 20', fill='green', tag='net')
+    for i in range(round(center[1]-50), 210, -50):
+        c.create_line(358+dx/2, i, 372+dx/2, i, fill='grey', width=2, tag='net')
+        c.create_line(65, i, 665+dx, i, fill='grey', width=1, dash=(1, 9), tag='net')
+
+    c.create_text(688+dx, 493+dy/2, text='X', font='Verdana 20', fill='green', tag='net')
     c.create_text(380+dx/2, 195, text='Y', font='Verdana 20', fill='green', tag='net')
     redraw()
 
@@ -744,19 +756,11 @@ def config(event):
         dy = window.winfo_height() - win_size[1]
         coordinate_field_creation()
         fox.upd_coords((dx-old_dx)/2, (dy-old_dy)/2)
-        # r_point_canv = net_to_canv(rotate_point)
-
-        # rotate_point = [rotate_point[0] + (dx-old_dx)/2, rotate_point[1] + (dy-old_dy)/2]
-        # rotate_point = canv_to_net(r_point_canv[0] + (dx-old_dx)/2, r_point_canv[1] + (dy-old_dy)/2)
-        # reprint_dot(rotate_point, 2)
         reprint_dot([ent3.get(), ent6.get()], 1)
         reprint_dot([ent5.get(), ent7.get()], 2)
         fox.analyze_and_redraw()
         fox.draw()
-
-        print(fox.coords)
-        print(center)
-        c.place(x=0, y=0)
+        c.place(x=-15, y=0)
 
 
 fox = Fox(load_and_transf_coords('data.txt'))
@@ -778,7 +782,6 @@ buttons_creation()
 coordinate_field_creation()
 radiobutton_creation()
 default_fox_coords = load_and_transf_coords('data.txt')
-# coords = load_and_transf_coords('data.txt')
 fox.draw()
 
 mmenu = Menu(window)
