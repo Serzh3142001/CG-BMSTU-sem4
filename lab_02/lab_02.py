@@ -48,7 +48,7 @@ class Fox:
 
         rotated_dots = []
         for dot in self.coords:
-            rotated_dots.append(rotate(dot, alpha, center))
+            rotated_dots.append(rotate(dot, alpha, net_to_canv(center)))
 
         foxx = c.find_withtag('fox')
         for elem in foxx:
@@ -58,7 +58,7 @@ class Fox:
         self.analyze_and_redraw()
 
         if st:
-            story.append(f'fox.rotate({-degrees(alpha)}, {net_to_canv(ent5.get(), ent7.get())}, 0)')
+            story.append(f'fox.rotate({-degrees(alpha)}, {[ent5.get(), ent7.get()]}, 0)')
 
         self.draw()
 
@@ -94,7 +94,7 @@ class Fox:
 
         resized_dots = []
         for dot in self.coords:
-            resized_dots.append(resize(dot, [k, k1], center))
+            resized_dots.append(resize(dot, [k, k1], net_to_canv(center)))
 
         foxx = c.find_withtag('fox')
         for elem in foxx:
@@ -106,7 +106,7 @@ class Fox:
         if st:
             story.append(
                 f'fox.resize({sign * (-1 if sign == -1 else 1)}, {1 / k}, {1 / k1}, '
-                f'{net_to_canv(ent3.get(), ent6.get())}, 0)')
+                f'{[ent3.get(), ent6.get()]}, 0)')
 
         self.draw()
 
@@ -250,16 +250,10 @@ label20 = Label(text='y:', font='Arial 11', fg='grey')
 label21 = Label(text='x:', font='Arial 11', fg='grey')
 label22 = Label(text='y:', font='Arial 11', fg='grey')
 
-btn_rot_r = Button(window, text='↻', fg='green', command=lambda: fox.rotate(ent4.get(), net_to_canv(ent5.get(),
-                                                                                                    ent7.get())))
-btn_rot_l = Button(window, text='↺', fg='green', command=lambda: fox.rotate('-' + ent4.get(), net_to_canv(ent5.get(),
-                                                                                                          ent7.get())))
-btn_res_r = Button(window, text='▲', fg='green', command=lambda: fox.resize(1, ent2.get(), ent8.get(),
-                                                                            net_to_canv(ent3.get(),
-                                                                                        ent6.get())))
-btn_res_l = Button(window, text='▼', fg='green', command=lambda: fox.resize(-1, ent2.get(), ent8.get(),
-                                                                            net_to_canv(ent3.get(),
-                                                                                        ent6.get())))
+btn_rot_r = Button(window, text='↻', fg='green', command=lambda: fox.rotate(ent4.get(), [ent5.get(), ent7.get()]))
+btn_rot_l = Button(window, text='↺', fg='green', command=lambda: fox.rotate('-' + ent4.get(), [ent5.get(), ent7.get()]))
+btn_res_r = Button(window, text='▲', fg='green', command=lambda: fox.resize(1, ent2.get(), ent8.get(), [ent3.get(), ent6.get()]))
+btn_res_l = Button(window, text='▼', fg='green', command=lambda: fox.resize(-1, ent2.get(), ent8.get(), [ent3.get(), ent6.get()]))
 btn_mv = Button(window, text='move', fg='green', command=lambda: fox.move([ent1.get(), ent9.get()], 'w'))
 btn_mv_r = Button(window, text='▶', fg='green', command=lambda: fox.move(ent10.get(), 'right'))
 btn_mv_l = Button(window, text='◀', fg='green', command=lambda: fox.move(ent10.get(), 'left'))
@@ -766,10 +760,10 @@ def config(event):
 fox = Fox(load_and_transf_coords('data.txt'))
 
 c.bind('<1>', click)
-window.bind("<Command-r>", lambda event: fox.rotate(ent4.get(), net_to_canv(ent5.get(), ent7.get())))
-window.bind("<Shift-Command-r>", lambda event: fox.rotate('-' + ent4.get(), net_to_canv(ent5.get(), ent7.get())))
-window.bind("<Command-Up>", lambda event: fox.resize(1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
-window.bind("<Command-Down>", lambda event: fox.resize(-1, ent2.get(), ent8.get(), net_to_canv(ent3.get(), ent6.get())))
+window.bind("<Command-r>", lambda event: fox.rotate(ent4.get(), [ent5.get(), ent7.get()]))
+window.bind("<Shift-Command-r>", lambda event: fox.rotate('-' + ent4.get(), [ent5.get(), ent7.get()]))
+window.bind("<Command-Up>", lambda event: fox.resize(1, ent2.get(), ent8.get(), [ent3.get(), ent6.get()]))
+window.bind("<Command-Down>", lambda event: fox.resize(-1, ent2.get(), ent8.get(), [ent3.get(), ent6.get()]))
 window.bind("<Up>", lambda event: fox.move(ent10.get(), 'up'))
 window.bind("<Down>", lambda event: fox.move(ent10.get(), 'down'))
 window.bind("<Right>", lambda event: fox.move(ent10.get(), 'right'))
@@ -792,5 +786,6 @@ add_menu.add_command(label='Выход', command=exit)
 mmenu.add_cascade(label='About', menu=add_menu)
 window.config(menu=mmenu)
 
+window.geometry('700x900')
 c.pack()
 window.mainloop()
