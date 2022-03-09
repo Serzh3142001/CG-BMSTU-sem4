@@ -65,6 +65,8 @@ class Fox:
             if sign == 1:
                 k = float(k)
                 k1 = float(k1)
+                if abs(k * k1) < 1e-8:
+                    raise
             else:
                 k = 1 / float(k)
                 k1 = 1 / float(k1)
@@ -696,6 +698,7 @@ def start_state():
     ent9.insert(0, 5)
     ent10.insert(0, 15)
     fox = Fox(load_and_transf_coords('data.txt'))
+    fox.analyze_and_redraw()
     fox.draw()
 
 
