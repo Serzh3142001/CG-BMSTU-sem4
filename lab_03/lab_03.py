@@ -254,6 +254,7 @@ def canv_to_net(x, y=None):
 
     return [(x - center[0]) * sz, (center[1] - y) * sz]
 
+
 window = Tk()
 
 var = IntVar()
@@ -486,6 +487,8 @@ def draw_line(start=None, stop=None, colorr=None, met=None):
         dda_draw(start, stop, colorr)
     elif met == 2:
         br_float_draw(start, stop, colorr)
+    elif met == 3:
+        br_int_draw(start, stop, colorr)
 
 
 def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
@@ -503,7 +506,7 @@ def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
 
     for alpha in range(0, 360, step):
         start = center
-        stop = [start[0] + radius*sin(radians(alpha)), start[1] + radius*cos(radians(alpha))]
+        stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
         if met == 0:
             standart_draw(start, stop, colorr)
         elif met == 1:
@@ -515,11 +518,12 @@ def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
 def standart_draw(start, stop, colorr):
     c.create_line([net_to_canv(start), net_to_canv(stop)], width=1, fill=colorr, tag='line')
 
+
 def dda_draw(start, stop, colorr):
     x1, y1 = net_to_canv(start)
     x2, y2 = net_to_canv(stop)
-    x = [0]*1000
-    y = [0]*1000
+    x = [0] * 1000
+    y = [0] * 1000
     xstart = round(x1)
     ystart = round(y1)
     xend = round(x2)
@@ -544,13 +548,106 @@ def dda_draw(start, stop, colorr):
         i += 1
 
 
+# def br_float_draw(start, stop, colorr):
+#     x0, y0 = list(map(int, net_to_canv(start)))
+#     x1, y1 = list(map(int, net_to_canv(stop)))
+#     deltax = abs(x1 - x0)
+#     deltay = abs(y1 - y0)
+#     error = 0
+#     deltaerr = (deltay + 1) / (deltax + 1)
+#     y = y0
+#     x = x0
+#     diry = y1 - y0
+#     if diry > 0:
+#         diry = 1
+#     if diry < 0:
+#         diry = -1
+#
+#     dirx = x1 - x0
+#     if dirx > 0:
+#         dirx = 1
+#     if dirx < 0:
+#         dirx = -1
+#
+#     if deltaerr <= 1:
+#         for x in range(x0, x1):
+#             draw_dot(round(x), round(y), colorr, 'line')
+#             error += deltaerr
+#             if error >= 1.0:
+#                 y += diry
+#                 error -= 1.0
+#     else:
+#         for y in range(y0, y1):
+#             draw_dot(round(x), round(y), colorr, 'line')
+#             error += deltaerr
+#             if error >= 1.0:
+#                 x += dirx
+#                 error -= 1.0
+
 def br_float_draw(start, stop, colorr):
-    x0, y0 = list(map(int, net_to_canv(start)))
-    x1, y1 = list(map(int, net_to_canv(stop)))
-    deltax = abs(x1 - x0)
-    deltay = abs(y1 - y0)
+    # x1, y1 = list(map(int, start))
+    # x2, y2 = list(map(int, stop))
+    # dx = x2 - x1  # проекция на ось икс
+    # dy = y2 - y1  # проекция на ось игрек
+    #
+    # sign_x = 1 if dx > 0 else -1 if dx < 0 else 0
+    # # Определяем, в какую сторону нужно будет сдвигаться. Если dx < 0, т.е. отрезок идёт
+    # # справа налево по иксу, то sign_x будет равен -1.
+    # # Это будет использоваться в цикле постороения.
+    #
+    # sign_y = 1 if dy > 0 else -1 if dy < 0 else 0
+    # # Аналогично. Если рисуем отрезок снизу вверх -
+    # # это будет отрицательный сдвиг для y (иначе - положительный).
+    #
+    # # далее мы будем сравнивать: "if (dx < dy)"
+    # # поэтому необходимо сделать dx = |dx|; dy = |dy|
+    # dx = abs(dx)
+    # dy = abs(dy)
+    #
+    # if dx > dy:  # определяем наклон отрезка:
+    #     # Если dx > dy, то значит отрезок "вытянут" вдоль оси икс, т.е. он скорее длинный, чем высокий.
+    #     # Значит в цикле нужно будет идти по икс (строчка el = dx), значит "протягивать" прямую по иксу
+    #     # надо в соответствии с тем, слева направо или справа налево она идёт (pdx = sign_x), при этом
+    #     # по y сдвиг такой отсутствует.
+    #     pdx, pdy = sign_x, 0
+    #     es, el = dy, dx
+    # else:  # случай, когда прямая скорее "высокая", чем длинная, т.е. вытянута по оси y
+    #     pdx, pdy = 0, sign_y
+    #     es, el = dx, dy  # тогда в цикле будем двигаться по y
+    #
+    # x, y = x1, y1
+    #
+    # error, t = 0.0, 0
+    # deltaerr = es/el
+    #
+    # draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')  # ставим первую точку
+    # # все последующие точки возможно надо сдвигать, поэтому первую ставим вне цикла
+    #
+    # while t < el:  # идём по всем точкам, начиная со второй и до последней
+    #     error += deltaerr
+    #     if error >= 1.0:
+    #         error = 0.0
+    #         x += sign_x  # сдвинуть прямую (сместить вверх или вниз, если цикл проходит по иксам)
+    #         y += sign_y  # или сместить влево-вправо, если цикл проходит по y
+    #     else:
+    #         x += pdx  # продолжить тянуть прямую дальше, т.е. сдвинуть влево или вправо, если
+    #         y += pdy  # цикл идёт по иксу; сдвинуть вверх или вниз, если по y
+    #     t += 1
+    #     draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')
+
+    x0, y0 = list(map(int, start))
+    x1, y1 = list(map(int, stop))
+    dx = x1 - x0
+    dy = y1 - y0
+
+    if dx <= 0 and dy >= 0 and abs(dx) >= abs(dy) or dx <= 0 and dy <= 0 or dx >= 0 and dy <= 0 and abs(dy) > abs(dx):
+        x0, y0, x1, y1 = x1, y1, x0, y0
+
+    # tg = deltay/deltax
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
     error = 0
-    deltaerr = (deltay + 1) / (deltax + 1)
+    deltaerr = (dy + 1) / (dx + 1)
     y = y0
     x = x0
     diry = y1 - y0
@@ -566,20 +663,122 @@ def br_float_draw(start, stop, colorr):
         dirx = -1
 
     if deltaerr <= 1:
+        # if x1 < x0:
+        #     x1, x0 = x0, x1
+        #     diry *= -1
         for x in range(x0, x1):
-            draw_dot(round(x), round(y), colorr, 'line')
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')
             error += deltaerr
             if error >= 1.0:
                 y += diry
                 error -= 1.0
     else:
+        deltaerr = 1/deltaerr
         for y in range(y0, y1):
-            draw_dot(round(x), round(y), colorr, 'line')
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')
             error += deltaerr
             if error >= 1.0:
                 x += dirx
                 error -= 1.0
 
+
+# def br_int_draw(start, stop, colorr):
+#     x1, y1 = list(map(int, start))
+#     x2, y2 = list(map(int, stop))
+#     dx = x2 - x1  # проекция на ось икс
+#     dy = y2 - y1  # проекция на ось игрек
+#
+#     sign_x = 1 if dx > 0 else -1 if dx < 0 else 0
+#     # Определяем, в какую сторону нужно будет сдвигаться. Если dx < 0, т.е. отрезок идёт
+#     # справа налево по иксу, то sign_x будет равен -1.
+#     # Это будет использоваться в цикле постороения.
+#
+#     sign_y = 1 if dy > 0 else -1 if dy < 0 else 0
+#     # Аналогично. Если рисуем отрезок снизу вверх -
+#     # это будет отрицательный сдвиг для y (иначе - положительный).
+#
+#     # далее мы будем сравнивать: "if (dx < dy)"
+#     # поэтому необходимо сделать dx = |dx|; dy = |dy|
+#     dx = abs(dx)
+#     dy = abs(dy)
+#
+#     if dx > dy:  # определяем наклон отрезка:
+#         # Если dx > dy, то значит отрезок "вытянут" вдоль оси икс, т.е. он скорее длинный, чем высокий.
+#         # Значит в цикле нужно будет идти по икс (строчка el = dx), значит "протягивать" прямую по иксу
+#         # надо в соответствии с тем, слева направо или справа налево она идёт (pdx = sign_x), при этом
+#         # по y сдвиг такой отсутствует.
+#         pdx, pdy = sign_x, 0
+#         es, el = dy, dx
+#     else:  # случай, когда прямая скорее "высокая", чем длинная, т.е. вытянута по оси y
+#         pdx, pdy = 0, sign_y
+#         es, el = dx, dy  # тогда в цикле будем двигаться по y
+#
+#     x, y = x1, y1
+#
+#     error, t = el/2, 0
+#
+#     draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')  # ставим первую точку
+#     # все последующие точки возможно надо сдвигать, поэтому первую ставим вне цикла
+#
+#     while t < el:  # идём по всем точкам, начиная со второй и до последней
+#         error -= es
+#         if error < 0:
+#             error += el
+#             x += sign_x  # сдвинуть прямую (сместить вверх или вниз, если цикл проходит по иксам)
+#             y += sign_y  # или сместить влево-вправо, если цикл проходит по y
+#         else:
+#             x += pdx  # продолжить тянуть прямую дальше, т.е. сдвинуть влево или вправо, если
+#             y += pdy  # цикл идёт по иксу; сдвинуть вверх или вниз, если по y
+#         t += 1
+#         draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')
+
+def br_int_draw(start, stop, colorr):
+    x0, y0 = list(map(int, start))
+    x1, y1 = list(map(int, stop))
+    dx = x1 - x0
+    dy = y1 - y0
+
+    if dx <= 0 and dy >= 0 and abs(dx) >= abs(dy) or dx <= 0 and dy <= 0 or dx >= 0 and dy <= 0 and abs(dy) > abs(dx):
+        x0, y0, x1, y1 = x1, y1, x0, y0
+
+    # tg = deltay/deltax
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    error = 0
+    deltaerr = (dy + 1)
+    deltaerr1 = (dx + 1)
+    y = y0
+    x = x0
+    diry = y1 - y0
+    if diry > 0:
+        diry = 1
+    if diry < 0:
+        diry = -1
+
+    dirx = x1 - x0
+    if dirx > 0:
+        dirx = 1
+    if dirx < 0:
+        dirx = -1
+
+    if dx > dy:
+    # if x1 < x0:
+    #     x1, x0 = x0, x1
+    #     diry *= -1
+        for x in range(x0, x1):
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')
+            error += deltaerr
+            if error >= dx + 1:
+                y += diry
+                error -= (dx + 1)
+    else:
+        # deltaerr = 1/deltaerr
+        for y in range(y0, y1):
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')
+            error += deltaerr1
+            if error >= dy + 1:
+                x += dirx
+                error -= (dy + 1)
 
 def line_col_choose():
     global color
@@ -685,7 +884,7 @@ def del_with_tag(tag):
 def click(event):
     global res_coords, rot_coords
     # print(method.get())
-    if event.x < 65 or event.x > 665+dx or event.y < 210 or event.y > 810+dy:
+    if event.x < 65 or event.x > 665 + dx or event.y < 210 or event.y > 810 + dy:
         return
 
     if var.get() == 1:
@@ -754,7 +953,6 @@ def reprint_dot(coords, fl=0):
         # c.create_text(x1 + 2, y1 - 2, text='↻', fill='green', tag='rot', font='Helvetica 40')
 
 
-
 def back():
     if not len(story):
         return
@@ -784,10 +982,10 @@ def back():
 def scale(x, y):
     global sz
     prev_sz = sz
-    while x < (150 + dx/4) * sz and y < (150 + dy/4) * sz:
+    while x < (150 + dx / 4) * sz and y < (150 + dy / 4) * sz:
         sz /= 2
 
-    while x > (300 + dx/2) * sz or y > (300 + dy/2) * sz:
+    while x > (300 + dx / 2) * sz or y > (300 + dy / 2) * sz:
         sz *= 2
 
     if sz != prev_sz:
@@ -802,23 +1000,23 @@ def redraw():
         c.delete(cor)
 
     max_len = 0
-    for i in range(65, 665+dx, 50):
+    for i in range(65, 665 + dx, 50):
         if len(f'{round((i - 365) * sz, 3):g}') > max_len:
             max_len = len(f'{round((i - 365) * sz, 3):g}')
 
     for i in range(round(center[0] + 50), 665 + dx, 50):
-        c.create_text(i, 530+dy/2, fill='grey', text=f'{round((i - center[0]) * sz, 3):g}', tag='coord',
+        c.create_text(i, 530 + dy / 2, fill='grey', text=f'{round((i - center[0]) * sz, 3):g}', tag='coord',
                       font='Verdana 8' if max_len > 6 else 'Verdana 12')
 
     for i in range(round(center[0] - 50), 65, -50):
-        c.create_text(i, 530+dy/2, fill='grey', text=f'{round((i - center[0]) * sz, 3):g}', tag='coord',
+        c.create_text(i, 530 + dy / 2, fill='grey', text=f'{round((i - center[0]) * sz, 3):g}', tag='coord',
                       font='Verdana 8' if max_len > 6 else 'Verdana 12')
 
     for i in range(round(center[1] + 50), 810 + dy, 50):
-        c.create_text(345+dx/2, i + 10, fill='grey', text=f'{round(-(i - center[1]) * sz, 3):g}', tag='coord')
+        c.create_text(345 + dx / 2, i + 10, fill='grey', text=f'{round(-(i - center[1]) * sz, 3):g}', tag='coord')
 
     for i in range(round(center[1] - 50), 210, -50):
-        c.create_text(345+dx/2, i + 10, fill='grey', text=f'{round(-(i - center[1]) * sz, 3):g}', tag='coord')
+        c.create_text(345 + dx / 2, i + 10, fill='grey', text=f'{round(-(i - center[1]) * sz, 3):g}', tag='coord')
 
 
 # def text_and_labels_creation():
@@ -868,48 +1066,49 @@ def coordinate_field_creation():
     if not color1[1]:
         color1 = ['', 'white']
 
-    c.create_polygon([[65, 210], [65, 810+dy], [665+dx, 810+dy], [665+dx, 210]], width=2, fill=color1[1], tag='bg')
-    center[0] = 365 + dx/2
-    center[1] = 510 + dy/2
+    c.create_polygon([[65, 210], [65, 810 + dy], [665 + dx, 810 + dy], [665 + dx, 210]], width=2, fill=color1[1],
+                     tag='bg')
+    center[0] = 365 + dx / 2
+    center[1] = 510 + dy / 2
     clean_coords()
-    c.create_line(33, 510+dy/2, 695+dx, 510+dy/2, fill='grey',
+    c.create_line(33, 510 + dy / 2, 695 + dx, 510 + dy / 2, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6", tag='net')
-    c.create_line(365+dx/2, 835+dy, 365+dx/2, 185, fill='grey',
+    c.create_line(365 + dx / 2, 835 + dy, 365 + dx / 2, 185, fill='grey',
                   width=3, arrow=LAST,
                   activefill='lightgreen',
                   arrowshape="10 20 6", tag='net')
-    c.create_line(665+dx, 210, 665+dx, 810+dy, fill='black',
+    c.create_line(665 + dx, 210, 665 + dx, 810 + dy, fill='black',
                   width=1, dash=(5, 9), tag='net')
-    c.create_line(65, 810+dy, 665+dx, 810+dy, fill='black',
+    c.create_line(65, 810 + dy, 665 + dx, 810 + dy, fill='black',
                   width=1, dash=(5, 9), tag='net')
-    c.create_line(65, 210, 665+dx, 210, fill='black',
+    c.create_line(65, 210, 665 + dx, 210, fill='black',
                   width=1, dash=(5, 9), tag='net')
-    c.create_line(65, 210, 65, 810+dy, fill='black',
-                  width=1, dash=(5, 9), tag='net')
-
-    c.create_line(225 + dx/4, 5, 225 + dx/4, 180, fill='black',
+    c.create_line(65, 210, 65, 810 + dy, fill='black',
                   width=1, dash=(5, 9), tag='net')
 
-    for i in range(round(center[0]+50), 665+dx, 50):
-        c.create_line(i, 503+dy/2, i, 520+dy/2, fill='grey', width=2, tag='net')
-        c.create_line(i, 210, i, 810+dy, fill='grey', width=1, dash=(1, 9), tag='net')
+    c.create_line(225 + dx / 4, 5, 225 + dx / 4, 180, fill='black',
+                  width=1, dash=(5, 9), tag='net')
 
-    for i in range(round(center[0]-50), 65, -50):
-        c.create_line(i, 503+dy/2, i, 520+dy/2, fill='grey', width=2, tag='net')
-        c.create_line(i, 210, i, 810+dy, fill='grey', width=1, dash=(1, 9), tag='net')
+    for i in range(round(center[0] + 50), 665 + dx, 50):
+        c.create_line(i, 503 + dy / 2, i, 520 + dy / 2, fill='grey', width=2, tag='net')
+        c.create_line(i, 210, i, 810 + dy, fill='grey', width=1, dash=(1, 9), tag='net')
 
-    for i in range(round(center[1]+50), 810+dy, 50):
-        c.create_line(358+dx/2, i, 372+dx/2, i, fill='grey', width=2, tag='net')
-        c.create_line(65, i, 665+dx, i, fill='grey', width=1, dash=(1, 9), tag='net')
+    for i in range(round(center[0] - 50), 65, -50):
+        c.create_line(i, 503 + dy / 2, i, 520 + dy / 2, fill='grey', width=2, tag='net')
+        c.create_line(i, 210, i, 810 + dy, fill='grey', width=1, dash=(1, 9), tag='net')
 
-    for i in range(round(center[1]-50), 210, -50):
-        c.create_line(358+dx/2, i, 372+dx/2, i, fill='grey', width=2, tag='net')
-        c.create_line(65, i, 665+dx, i, fill='grey', width=1, dash=(1, 9), tag='net')
+    for i in range(round(center[1] + 50), 810 + dy, 50):
+        c.create_line(358 + dx / 2, i, 372 + dx / 2, i, fill='grey', width=2, tag='net')
+        c.create_line(65, i, 665 + dx, i, fill='grey', width=1, dash=(1, 9), tag='net')
 
-    c.create_text(688+dx, 493+dy/2, text='X', font='Verdana 20', fill='green', tag='net')
-    c.create_text(380+dx/2, 195, text='Y', font='Verdana 20', fill='green', tag='net')
+    for i in range(round(center[1] - 50), 210, -50):
+        c.create_line(358 + dx / 2, i, 372 + dx / 2, i, fill='grey', width=2, tag='net')
+        c.create_line(65, i, 665 + dx, i, fill='grey', width=1, dash=(1, 9), tag='net')
+
+    c.create_text(688 + dx, 493 + dy / 2, text='X', font='Verdana 20', fill='green', tag='net')
+    c.create_text(380 + dx / 2, 195, text='Y', font='Verdana 20', fill='green', tag='net')
     redraw()
 
 
@@ -949,6 +1148,7 @@ def start_state():
     res_coords = []
     rot_coords = []
     clean_all()
+    del_with_tag('line')
     ent1.insert(0, 0)
     ent2.insert(0, 200)
     ent3.insert(0, 150)
@@ -965,6 +1165,8 @@ def start_state():
 
 
 old_dx, old_dy = dx, dy
+
+
 def config(event):
     global dx, dy, old_dx, old_dy, rotate_point, resize_point, resized_coords, resized_coords1
     if event.widget == window:
