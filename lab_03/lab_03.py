@@ -410,14 +410,14 @@ ent8.place(x=115, y=70)
 ent9.place(x=115, y=40)'''
 
 lbls = '''label1.place(x=5, y=5)
-label2.place(x=460, y=5)
+label2.place(x=435, y=5)
 label3.place(x=465, y=43)
 label4.place(x=5, y=43)
 label5.place(x=15, y=73)
 label6.place(x=22, y=103)
 label7.place(x=437, y=75)
 label11.place(x=220, y=5)
-label14.place(x=596, y=70)
+label14.place(x=608, y=70)
 label18.place(x=80, y=143)
 label19.place(x=70, y=25)
 label20.place(x=115, y=25)
@@ -452,9 +452,23 @@ set4.place(x=220, y=78)
 set5.place(x=220, y=101)
 set6.place(x=220, y=124)
 set7.place(x=220, y=147)
-set8.place(x=600, y=42)'''
+set8.place(x=610, y=42)'''
 
-TASK = 'Вариант 13:\nНарисовать исходный рисунок, затем его переместить, промасштабировать, повернуть'
+TASK = '''
+Реализовать различные алгоритмы построения одиночных отрезков. Отрезок задается координатой начала, координатой конца и цветом.
+
+Сравнить визуальные характеристики отрезков, построенных разными алгоритмами, с помощью построения пучка отрезков, с заданным шагом.
+
+Сравнение со стандартным алгоритмом. Задаются начальные и конечные координаты; рисуется отрезок разными методами. Отрисовка отрезка другим цветом и методом поверх первого, для проверки совпадения. Предоставить пользователю возможность выбора двух цветов – цвета фона и цвета рисования. Алгоритмы выбирать из выпадающего списка.
+
+- ЦДА
+- Брезенхем действительные числа
+- Брезенхем целые числа
+- Брезенхем с устранением ступенчатости
+- ВУ
+
+Построение гистограмм по количеству ступенек в зависимости от угла наклона.
+'''
 AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
 sz = 1
 # resize_point = [0, 0]
@@ -483,6 +497,7 @@ cnt = -1
 def rgb_to_hex(rgb):
     rgb = tuple(map(int, rgb))
     return '#%02x%02x%02x' % rgb
+
 
 def draw_dot(x, y, colorr, tag, count_fl=False):
     global old_dot, old_angl, cnt
@@ -520,37 +535,18 @@ def count_steps():
         box.showinfo('Error', 'Некорректные координаты!')
         return
 
-    met = 1
     colorr = color
-    # bunches.append([center, colorr, met, radius, step])
     for met in range(1, 6):
         for alpha in range(0, 91, step):
             start = center
             stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
-            # if met == 1:
             draw_line(start, stop, colorr, met, True)
             for i in range(cnt//2):
                 eval(f'hist{met}.append(alpha)')
-            # hist1[0].append(alpha)
-            # hist1[1].append(cnt//2)
             cnt = -1
             old_dot = [0, 0]
             old_angl = 0
-            # elif met == 2:
-            #     br_float_draw(start, stop, colorr[1], True)
-            # elif met == 3:
-            #     br_int_draw(start, stop, colorr[1], True)
-            # elif met == 4:
-            #     br_smooth_draw(start, stop, colorr, True)
-            # elif met == 5:
-            #     vu_draw(start, stop, colorr, True)
 
-    # print(hist1)
-    # plt.bar(hist1[0], height=hist1[1])
-    # sns.displot(histt)
-    # sns.sh
-    # plt.subplots(3, 2)
-    # plt.title('fe')
     plt.figure(figsize=(10, 8))
 
     plt.subplot(2, 3, 1)
@@ -575,14 +571,6 @@ def count_steps():
     plt.show()
 
 
-
-    # draw_line(count_fl=True)
-    # print(cnt//2+1)
-    # cnt = -1
-    # old_dot = [0, 0]
-    # old_angl = 0
-
-
 def redraw_elems():
     del_with_tag('line')
     for line in lines:
@@ -597,6 +585,11 @@ def draw_line(start=None, stop=None, colorr=None, met=None, count_fl=False):
         met = method.get()
         colorr = color
         lines.append([start, stop, color, met])
+
+    if max(abs(int(start[0])), abs(int(stop[0]))) > 300 + dx/2 or max(abs(int(start[1])), abs(int(stop[1]))) > 300 + dy/2:
+        box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
+        lines.pop()
+        return
 
     if met == 0:
         standart_draw(start, stop, colorr[1])
@@ -625,6 +618,12 @@ def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
         met = method.get()
         colorr = color
         bunches.append([center, colorr, met, radius, step])
+
+    max_stop = max(list(map(abs, center))) + radius
+    if max(abs(int(center[0])), abs(int(max_stop))) > 300 + dx/2 or max(abs(int(center[1])), abs(int(max_stop))) > 300 + dy/2:
+        box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
+        bunches.pop()
+        return
 
     for alpha in range(0, 360, step):
         start = center
@@ -1385,6 +1384,9 @@ def coordinate_field_creation():
                   width=1, dash=(5, 9), tag='net')
 
     c.create_line(225 + dx / 4, 5, 225 + dx / 4, 180, fill='black',
+                  width=1, dash=(5, 9), tag='net')
+
+    c.create_line(440 + dx / 2, 5, 440 + dx / 2, 180, fill='black',
                   width=1, dash=(5, 9), tag='net')
 
     for i in range(round(center[0] + 50), 665 + dx, 50):
