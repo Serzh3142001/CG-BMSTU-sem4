@@ -3,6 +3,7 @@ from tkinter import *
 import tkinter.messagebox as box
 from tkinter import messagebox
 from tkinter import colorchooser
+from colorsys import *
 
 
 # class Fox:
@@ -374,7 +375,7 @@ set6 = Radiobutton(text="Брезенхейм (устр. ступен.)", fg='bl
 set7 = Radiobutton(text="ВУ", fg='black', variable=method, value=5)
 set8 = Radiobutton(text="➚", fg='black', variable=var, value=2)
 
-var.set(0)
+var.set(1)
 method.set(0)
 set0.place(x=157, y=42)
 set1.place(x=157, y=72)
@@ -451,19 +452,25 @@ dx = 0
 dy = 0
 color_coords = (87, 105), (87, 123), (137, 123), (137, 105)
 resized_coords = [[87, 105], [87, 123], [137, 123], [137, 105]]
-color = ['', 'black']
+color = [(0.0, 0.0, 0.0), '#000000']
 
 color_coords1 = (125, 844), (125, 862), (175, 862), (175, 844)
 resized_coords1 = [[125, 844], [125, 862], [175, 862], [175, 844]]
-color1 = ['', 'white']
+color1 = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
 
 c.create_polygon(color_coords, width=2, fill='black', tag='color')
 lines = []
 bunches = []
 
+def rgb_to_hex(rgb):
+    rgb = tuple(map(int, rgb))
+    return '#%02x%02x%02x' % rgb
 
 def draw_dot(x, y, colorr, tag):
-    c.create_oval(x, y, x, y, width=0, fill=colorr, tag=tag)
+    # x, y = net_to_canv(x, y)[0], net_to_canv(x, y)[1]
+    d = 1
+    # c.create_oval(x, y, x, y, width=0, fill=colorr, tag=tag)
+    c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=tag)
 
 
 def redraw_elems():
@@ -478,17 +485,19 @@ def draw_line(start=None, stop=None, colorr=None, met=None):
     if not start:
         start, stop = [ent1.get(), ent9.get()], [ent2.get(), ent8.get()]
         met = method.get()
-        colorr = color[1]
-        lines.append([start, stop, colorr, met])
+        colorr = color
+        lines.append([start, stop, color, met])
 
     if met == 0:
-        standart_draw(start, stop, colorr)
+        standart_draw(start, stop, colorr[1])
     elif met == 1:
-        dda_draw(start, stop, colorr)
+        dda_draw(start, stop, colorr[1])
     elif met == 2:
-        br_float_draw(start, stop, colorr)
+        br_float_draw(start, stop, colorr[1])
     elif met == 3:
-        br_int_draw(start, stop, colorr)
+        br_int_draw(start, stop, colorr[1])
+    elif met == 4:
+        br_smooth_draw(start, stop, colorr)
 
 
 def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
@@ -501,18 +510,22 @@ def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
             box.showinfo('Error', 'Некорректные координаты!')
 
         met = method.get()
-        colorr = color[1]
+        colorr = color
         bunches.append([center, colorr, met, radius, step])
 
     for alpha in range(0, 360, step):
         start = center
         stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
         if met == 0:
-            standart_draw(start, stop, colorr)
+            standart_draw(start, stop, colorr[1])
         elif met == 1:
-            dda_draw(start, stop, colorr)
+            dda_draw(start, stop, colorr[1])
         elif met == 2:
-            br_float_draw(start, stop, colorr)
+            br_float_draw(start, stop, colorr[1])
+        elif met == 3:
+            br_int_draw(start, stop, colorr[1])
+        elif met == 4:
+            br_smooth_draw(start, stop, colorr)
 
 
 def standart_draw(start, stop, colorr):
@@ -761,7 +774,7 @@ def br_int_draw(start, stop, colorr):
     if dirx < 0:
         dirx = -1
 
-    if dx > dy:
+    if dx >= dy:
     # if x1 < x0:
     #     x1, x0 = x0, x1
     #     diry *= -1
@@ -779,6 +792,51 @@ def br_int_draw(start, stop, colorr):
             if error >= dy + 1:
                 x += dirx
                 error -= (dy + 1)
+
+
+def change_brightness(col, k):
+    col = col[0]
+    # print(col)
+    col = list(col)
+    # col1 = list(rgb_to_hsv(col[0][0], col[0][1], col[0][2]))
+    # col1[1] *= k
+    # col1[2] += (256 - col1[2]) * k
+    # col_rgb1 = tuple(map(int, hsv_to_rgb(col1[0], col1[1], col1[2])))
+    for i in range(3):
+        col[i] += (255-col[i])*(1-k)
+
+    # return rgb_to_hex(col_rgb1)
+    return rgb_to_hex(col)
+
+def br_smooth_draw(start, stop, colorr):
+    k1 = 0.1
+    # x1, y1 = list(map(float, start))
+    # x2, y2 = list(map(float, stop))
+    # x = x1
+    # y = y1
+    # dx = x2 - x1
+    # dy = y2 - y1
+    # I = 1
+    # m = dy/dx
+    # w = I - m
+    # e = 1/2
+    # draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, m/2), 'line')
+    #
+    # while x < x2:
+    #     if e < w:
+    #         x += 1
+    #         e += m
+    #     else:
+    #         x += 1
+    #         y += 1
+    #         e -= w
+    #     draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, e), 'line')
+
+
+    c.create_polygon(list(map(net_to_canv, [[0, 0], [0, 100], [100, 100], [100, 0]])), fill=change_brightness(colorr, k1))
+
+    c.create_polygon(list(map(net_to_canv, [[102, 0], [102, 100], [202, 100], [202, 0]])), fill=change_brightness(colorr, 1-k1))
+
 
 def line_col_choose():
     global color
