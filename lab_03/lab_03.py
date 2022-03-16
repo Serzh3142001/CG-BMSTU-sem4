@@ -373,8 +373,8 @@ btn_hist = Button(window, text='📊Гистограммы', fg='green', command
 # btn_mv_d = Button(window, text='▼', fg='green', command=lambda: fox.move(ent10.get(), 'down'))
 btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
-btn_draw = Button(window, text='Нарисовать отрез.', fg='blue', command=lambda: draw_line())
-btn_draw_bunch = Button(window, text='Нарисовать пучок', fg='blue', command=lambda: draw_bunch())
+btn_draw = Button(window, text='Нарисовать отрез.', fg='blue', command=lambda: draw_line(TAG))
+btn_draw_bunch = Button(window, text='Нарисовать пучок', fg='blue', command=lambda: draw_bunch(TAG))
 btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 
 set0 = Radiobutton(text="➚", fg='black', variable=var, value=0)
@@ -492,6 +492,7 @@ bunches = []
 old_dot = [0, 0]
 old_angl = 0
 cnt = -1
+TAG = 0
 
 
 def rgb_to_hex(rgb):
@@ -504,7 +505,8 @@ def draw_dot(x, y, colorr, tag, count_fl=False):
 
     if not count_fl:
         d = 1
-        c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=tag)
+        c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=f"t{tag}")
+        # print(tag)
     else:
         if x - old_dot[0]:
             new_angl = abs(y - old_dot[1])/abs(x - old_dot[0])
@@ -540,7 +542,7 @@ def count_steps():
         for alpha in range(0, 91, step):
             start = center
             stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
-            draw_line(start, stop, colorr, met, True)
+            draw_line(0, start, stop, colorr, met, True, 0)
             for i in range(cnt//2):
                 eval(f'hist{met}.append(alpha)')
             cnt = -1
@@ -572,40 +574,51 @@ def count_steps():
 
 
 def redraw_elems():
-    del_with_tag('line')
+    global TAG
+    for i in range(TAG):
+        del_with_tag(f't{i}')
     for line in lines:
-        draw_line(line[0], line[1], line[2], line[3])
+        draw_line(line[0], line[1], line[2], line[3], line[4], False, 0)
     for bunch in bunches:
-        draw_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4])
+        draw_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
 
 
-def draw_line(start=None, stop=None, colorr=None, met=None, count_fl=False):
+def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False, st=1):
+    global TAG
     if not start:
         start, stop = [ent1.get(), ent9.get()], [ent2.get(), ent8.get()]
         met = method.get()
         colorr = color
-        lines.append([start, stop, color, met])
+        lines.append([tag, start, stop, color, met])
 
     if max(abs(int(start[0])), abs(int(stop[0]))) > 300 + dx/2 or max(abs(int(start[1])), abs(int(stop[1]))) > 300 + dy/2:
         box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
         lines.pop()
         return
 
+    if st:
+        story.append(f'del_with_tag("t{tag}");lines.pop()')
+        # TAG += 1
+
     if met == 0:
-        standart_draw(start, stop, colorr[1])
+        standart_draw(start, stop, colorr[1], tag)
     elif met == 1:
-        dda_draw(start, stop, colorr[1], count_fl)
+        dda_draw(start, stop, colorr[1], tag, count_fl)
     elif met == 2:
-        br_float_draw(start, stop, colorr[1], count_fl)
+        br_float_draw(start, stop, colorr[1], tag, count_fl)
     elif met == 3:
-        br_int_draw(start, stop, colorr[1], count_fl)
+        br_int_draw(start, stop, colorr[1], tag, count_fl)
     elif met == 4:
-        br_smooth_draw(start, stop, colorr, count_fl)
+        br_smooth_draw(start, stop, colorr, tag, count_fl)
     elif met == 5:
-        vu_draw(start, stop, colorr, count_fl)
+        vu_draw(start, stop, colorr, tag, count_fl)
+
+    if st:
+        TAG += 1
 
 
-def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
+def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, st=1):
+    global TAG
     if not center:
         try:
             center = [float(ent3.get()), float(ent4.get())]
@@ -617,7 +630,7 @@ def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
 
         met = method.get()
         colorr = color
-        bunches.append([center, colorr, met, radius, step])
+        bunches.append([tag, center, colorr, met, radius, step])
 
     max_stop = max(list(map(abs, center))) + radius
     if max(abs(int(center[0])), abs(int(max_stop))) > 300 + dx/2 or max(abs(int(center[1])), abs(int(max_stop))) > 300 + dy/2:
@@ -625,28 +638,35 @@ def draw_bunch(center=None, colorr=None, met=None, radius=None, step=None):
         bunches.pop()
         return
 
+    if st:
+        story.append(f'del_with_tag("t{tag}");bunches.pop()')
+
     for alpha in range(0, 360, step):
         start = center
         stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
         if met == 0:
-            standart_draw(start, stop, colorr[1])
+            standart_draw(start, stop, colorr[1], tag)
         elif met == 1:
-            dda_draw(start, stop, colorr[1])
+            dda_draw(start, stop, colorr[1], tag)
         elif met == 2:
-            br_float_draw(start, stop, colorr[1])
+            br_float_draw(start, stop, colorr[1], tag)
         elif met == 3:
-            br_int_draw(start, stop, colorr[1])
+            br_int_draw(start, stop, colorr[1], tag)
         elif met == 4:
-            br_smooth_draw(start, stop, colorr)
+            br_smooth_draw(start, stop, colorr, tag)
         elif met == 5:
-            vu_draw(start, stop, colorr)
+            vu_draw(start, stop, colorr, tag)
+
+    if st:
+        TAG += 1
 
 
-def standart_draw(start, stop, colorr):
-    c.create_line([net_to_canv(start), net_to_canv(stop)], width=1, fill=colorr, tag='line')
+def standart_draw(start, stop, colorr, tag):
+    # global TAG
+    c.create_line([net_to_canv(start), net_to_canv(stop)], width=1, fill=colorr, tag=f't{tag}')
 
 
-def dda_draw(start, stop, colorr, count_fl=False):
+def dda_draw(start, stop, colorr, tag, count_fl=False):
     x1, y1 = net_to_canv(start)
     x2, y2 = net_to_canv(stop)
     x = [0] * 1000
@@ -671,7 +691,7 @@ def dda_draw(start, stop, colorr, count_fl=False):
 
     i = 0
     while i <= L:
-        draw_dot(round(x[i]), round(y[i]), colorr, 'line', count_fl)
+        draw_dot(round(x[i]), round(y[i]), colorr, tag, count_fl)
         i += 1
 
 
@@ -711,7 +731,7 @@ def dda_draw(start, stop, colorr, count_fl=False):
 #                 x += dirx
 #                 error -= 1.0
 
-def br_float_draw(start, stop, colorr, count_fl=False):
+def br_float_draw(start, stop, colorr, tag, count_fl=False):
     # x1, y1 = list(map(int, start))
     # x2, y2 = list(map(int, stop))
     # dx = x2 - x1  # проекция на ось икс
@@ -794,7 +814,7 @@ def br_float_draw(start, stop, colorr, count_fl=False):
         #     x1, x0 = x0, x1
         #     diry *= -1
         for x in range(x0, x1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line', count_fl)
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
             error += deltaerr
             if error >= 1.0:
                 y += diry
@@ -802,7 +822,7 @@ def br_float_draw(start, stop, colorr, count_fl=False):
     else:
         deltaerr = 1/deltaerr
         for y in range(y0, y1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line', count_fl)
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
             error += deltaerr
             if error >= 1.0:
                 x += dirx
@@ -859,7 +879,7 @@ def br_float_draw(start, stop, colorr, count_fl=False):
 #         t += 1
 #         draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line')
 
-def br_int_draw(start, stop, colorr, count_fl=False):
+def br_int_draw(start, stop, colorr, tag, count_fl=False):
     x0, y0 = list(map(int, start))
     x1, y1 = list(map(int, stop))
     dx = x1 - x0
@@ -889,14 +909,14 @@ def br_int_draw(start, stop, colorr, count_fl=False):
 
     if dx >= dy:
         for x in range(x0, x1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line', count_fl)
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
             error += deltaerr
             if error >= dx + 1:
                 y += diry
                 error -= (dx + 1)
     else:
         for y in range(y0, y1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, 'line', count_fl)
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
             error += deltaerr1
             if error >= dy + 1:
                 x += dirx
@@ -916,7 +936,7 @@ def change_brightness(col, k):
 
     return rgb_to_hex(col)
 
-def br_smooth_draw(start, stop, colorr, count_fl=False):
+def br_smooth_draw(start, stop, colorr, tag, count_fl=False):
     x0, y0 = list(map(round, (list(map(float, start)))))
     x1, y1 = list(map(round, list(map(float, stop))))
     dx = x1 - x0
@@ -950,7 +970,7 @@ def br_smooth_draw(start, stop, colorr, count_fl=False):
     if dirx < 0:
         dirx = -1
 
-    draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, m / 2), 'line', count_fl)
+    draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, m / 2), tag, count_fl)
     if dx >= dy:
         while x < x1:
             if e < w:
@@ -960,7 +980,7 @@ def br_smooth_draw(start, stop, colorr, count_fl=False):
                 x += 1
                 y += diry
                 e -= w
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, e), 'line', count_fl)
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, e), tag, count_fl)
     else:
         while y < y1:
             if e < w:
@@ -970,7 +990,7 @@ def br_smooth_draw(start, stop, colorr, count_fl=False):
                 y += 1
                 x += dirx
                 e -= w
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, e), 'line', count_fl)
+            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, e), tag, count_fl)
 
 
     # c.create_polygon(list(map(net_to_canv, [[0, 0], [0, 100], [100, 100], [100, 0]])), fill=change_brightness(colorr, k1))
@@ -982,7 +1002,7 @@ def fpart(x):
     return abs(x - int(x))
 
 
-def vu_draw(start, stop, colorr, count_fl=False):
+def vu_draw(start, stop, colorr, tag, count_fl=False):
     x0, y0 = list(map(round, list(map(float, start))))
     x1, y1 = list(map(round, list(map(float, stop))))
 
@@ -1021,9 +1041,9 @@ def vu_draw(start, stop, colorr, count_fl=False):
     xpxl1 = xend  # будет использоваться в основном цикле
     ypxl1 = int(yend)
     draw_dot(round(net_to_canv(xpxl1, ypxl1)[0]), round(net_to_canv(xpxl1, ypxl1)[1]),
-             change_brightness(colorr, (1 - fpart(yend)) * xgap), 'line', count_fl)
+             change_brightness(colorr, (1 - fpart(yend)) * xgap), tag, count_fl)
     draw_dot(round(net_to_canv(xpxl1, ypxl1+1)[0]), round(net_to_canv(xpxl1, ypxl1+1)[1]),
-             change_brightness(colorr, fpart(yend) * xgap), 'line', count_fl)
+             change_brightness(colorr, fpart(yend) * xgap), tag, count_fl)
     # plot(xpxl1, ypxl1, (1 - fpart(yend)) * xgap)
     # plot(xpxl1, ypxl1 + 1, fpart(yend) × xgap)
     intery = yend + gradient  # первое y - пересечение для цикла
@@ -1036,9 +1056,9 @@ def vu_draw(start, stop, colorr, count_fl=False):
     xpxl2 = xend  # будет использоваться в основном цикле
     ypxl2 = int(yend)
     draw_dot(round(net_to_canv(xpxl2, ypxl2)[0]), round(net_to_canv(xpxl2, ypxl2)[1]),
-             change_brightness(colorr, (1 - fpart(yend)) * xgap), 'line', count_fl)
+             change_brightness(colorr, (1 - fpart(yend)) * xgap), tag, count_fl)
     draw_dot(round(net_to_canv(xpxl2, ypxl2 + 1)[0]), round(net_to_canv(xpxl2, ypxl2 + 1)[1]),
-             change_brightness(colorr, fpart(yend) * xgap), 'line', count_fl)
+             change_brightness(colorr, fpart(yend) * xgap), tag, count_fl)
     # plot(xpxl2, ypxl2, (1 - fpart(yend)) × xgap)
     # plot(xpxl2, ypxl2 + 1, fpart(yend) × xgap)
 
@@ -1047,31 +1067,31 @@ def vu_draw(start, stop, colorr, count_fl=False):
         for x in range(xpxl1, xpxl2):
             if intery >= 0:
                 draw_dot(round(net_to_canv(x, int(intery))[0]), round(net_to_canv(x, int(intery))[1]),
-                         change_brightness(colorr, 1 - fpart(intery)), 'line', count_fl)
+                         change_brightness(colorr, 1 - fpart(intery)), tag, count_fl)
                 if not count_fl:
                     draw_dot(round(net_to_canv(x, int(intery)+1)[0]), round(net_to_canv(x, int(intery)+1)[1]),
-                             change_brightness(colorr, fpart(intery)), 'line')
+                             change_brightness(colorr, fpart(intery)), tag)
             else:
                 draw_dot(round(net_to_canv(x, int(intery))[0]), round(net_to_canv(x, int(intery))[1]),
-                         change_brightness(colorr, fpart(intery)), 'line', count_fl)
+                         change_brightness(colorr, fpart(intery)), tag, count_fl)
                 if not count_fl:
                     draw_dot(round(net_to_canv(x, int(intery) - 1)[0]), round(net_to_canv(x, int(intery) + 1)[1]),
-                             change_brightness(colorr, 1 - fpart(intery)), 'line')
+                             change_brightness(colorr, 1 - fpart(intery)), tag)
             intery += gradient*diry
     else:
         for y in range(ypxl1, ypxl2):
             if interx >= 0:
                 draw_dot(round(net_to_canv(int(interx), y)[0]), round(net_to_canv(int(interx), y)[1]),
-                         change_brightness(colorr, 1 - fpart(interx)), 'line', count_fl)
+                         change_brightness(colorr, 1 - fpart(interx)), tag, count_fl)
                 if not count_fl:
                     draw_dot(round(net_to_canv(int(interx)+1, y)[0]), round(net_to_canv(int(interx)+1, y)[1]),
-                             change_brightness(colorr, fpart(interx)), 'line')
+                             change_brightness(colorr, fpart(interx)), tag)
             else:
                 draw_dot(round(net_to_canv(int(interx), y)[0]), round(net_to_canv(int(interx), y)[1]),
-                         change_brightness(colorr, fpart(interx)), 'line', count_fl)
+                         change_brightness(colorr, fpart(interx)), tag, count_fl)
                 if not count_fl:
                     draw_dot(round(net_to_canv(int(interx) + 1, y)[0]), round(net_to_canv(int(interx) - 1, y)[1]),
-                             change_brightness(colorr, 1 - fpart(interx)), 'line')
+                             change_brightness(colorr, 1 - fpart(interx)), tag)
             interx += gradient*dirx
 
 
@@ -1265,11 +1285,11 @@ def back():
         print(com)
         eval(com)
 
-    foxx = c.find_withtag('fox')
-    for elem in foxx:
-        c.delete(elem)
-    fox.analyze_and_redraw()
-    fox.draw()
+    # foxx = c.find_withtag('fox')
+    # for elem in foxx:
+    #     c.delete(elem)
+    # fox.analyze_and_redraw()
+    # fox.draw()
 
     del story[-1]
 
@@ -1440,13 +1460,15 @@ def coordinate_field_creation():
 
 
 def start_state():
-    global story, rot_coords, res_coords, lines, bunches
+    global story, rot_coords, res_coords, lines, bunches, TAG
     scale(200, 200)
     story = []
     lines = []
     bunches = []
     clean_all()
-    del_with_tag('line')
+    for i in range(TAG):
+        del_with_tag(f't{i}')
+    TAG = 0
     ent1.insert(0, 0)
     ent2.insert(0, 200)
     ent3.insert(0, 150)
@@ -1538,6 +1560,9 @@ def config(event):
 
 
 # fox = Fox(load_and_transf_coords('data.txt'))
+
+# c.create_line([150, 150], [300, 300], tag='t0')
+# del_with_tag('t0')
 
 c.bind('<1>', click)
 # window.bind("<Command-r>", lambda event: fox.rotate(ent4.get(), [ent5.get(), ent7.get()]))
