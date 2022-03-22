@@ -4,6 +4,7 @@ import tkinter.messagebox as box
 from tkinter import messagebox
 from tkinter import colorchooser
 import matplotlib.pyplot as plt
+import os
 
 
 window = Tk()
@@ -67,6 +68,7 @@ btn_back = Button(window, text='назад', fg='purple', command=lambda: back()
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
 btn_draw = Button(window, text='Нарисовать отрез.', fg='blue', command=lambda: draw_line(TAG))
 btn_draw_bunch = Button(window, text='Нарисовать пучок', fg='blue', command=lambda: draw_bunch(TAG))
+btn_colorimeter = Button(window, text='🎨', fg='blue', command=lambda: os.system('open /System/Applications/Utilities/Digital\ Color\ Meter.app'))
 btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 
 set0 = Radiobutton(text="➚", fg='black', variable=var, value=0)
@@ -119,9 +121,11 @@ label22.place(x=570, y=25)'''
 btns = '''btn_col_line.place(x=135, y=103)
 btn_back.place(x=25, y=140)
 btn_hist.place(x=437, y=140)
+btn_colorimeter.place(x=375, y=175)
 btn_exit.place(x=630, y=840)
 btn_draw.place(x=220, y=175)
-btn_draw_bunch.place(x=437, y=105)'''
+btn_draw_bunch.place(x=437, y=105)
+btn_cl_all.place(x=25, y=170)'''
 
 rbtns = '''set0.place(x=157, y=42)
 set1.place(x=157, y=72)
@@ -155,7 +159,7 @@ dx = 0
 dy = 0
 color_coords = (87, 105), (87, 123), (137, 123), (137, 105)
 resized_coords = [[87, 105], [87, 123], [137, 123], [137, 105]]
-color = [(0.0, 0.0, 0.0), '#000000']
+color = [(255, 0, 0), '#ff0000']
 
 color_coords1 = (125, 844), (125, 862), (175, 862), (175, 844)
 resized_coords1 = [[125, 844], [125, 862], [175, 862], [175, 844]]
@@ -176,6 +180,10 @@ def rgb_to_hex(rgb):
 
 
 def draw_dot(x, y, colorr, tag, count_fl=False):
+    if type(x) == list:
+        y = x[1]
+        x = x[0]
+
     global old_dot, old_angl, cnt
 
     if not count_fl:
@@ -264,10 +272,17 @@ def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False,
         colorr = color
         lines.append([tag, start, stop, color, met])
 
-    if max(abs(int(start[0])), abs(int(stop[0]))) > 300 + dx/2 or max(abs(int(start[1])), abs(int(stop[1]))) > 300 + dy/2:
-        box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
-        lines.pop()
-        return
+    # if max(abs(int(start[0])), abs(int(stop[0]))) > 300 + dx/2 or max(abs(int(start[1])), abs(int(stop[1]))) > 300 + dy/2:
+    #     box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
+    #     lines.pop()
+    #     return
+
+    redraw_flag = 0
+    max_stop_x = max(abs(int(start[0])), abs(int(stop[0])))
+    max_stop_y = max(abs(int(start[1])), abs(int(stop[1])))
+    if max_stop_x > (300 + dx / 2) * sz or max_stop_y > (300 + dy / 2) * sz:
+        scale(max_stop_x, max_stop_y)
+        redraw_flag = 1
 
     if st:
         story.append(f'del_with_tag("t{tag}");lines.pop()')
@@ -284,6 +299,9 @@ def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False,
         br_smooth_draw(start, stop, colorr, tag, count_fl)
     elif met == 5:
         vu_draw(start, stop, colorr, tag, count_fl)
+
+    if redraw_flag:
+        redraw_elems()
 
     if st:
         TAG += 1
@@ -304,11 +322,17 @@ def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, 
         colorr = color
         bunches.append([tag, center, colorr, met, radius, step])
 
-    max_stop = max(list(map(abs, center))) + radius
-    if max(abs(int(center[0])), abs(int(max_stop))) > 300 + dx/2 or max(abs(int(center[1])), abs(int(max_stop))) > 300 + dy/2:
-        box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
-        bunches.pop()
-        return
+    max_stop_x = abs(center[0]) + radius
+    max_stop_y = abs(center[1]) + radius
+    print(max_stop_x, max_stop_y)
+
+    redraw_flag = 0
+    if max_stop_x > (300 + dx/2)*sz or max_stop_y > (300 + dy/2)*sz:
+        scale(max_stop_x, max_stop_y)
+        redraw_flag = 1
+        # box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
+        # bunches.pop()
+        # return
 
     if st:
         story.append(f'del_with_tag("t{tag}");bunches.pop()')
@@ -316,6 +340,7 @@ def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, 
     for alpha in range(0, 360, step):
         start = center
         stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
+
         if met == 0:
             standart_draw(start, stop, colorr[1], tag)
         elif met == 1:
@@ -329,13 +354,16 @@ def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, 
         elif met == 5:
             vu_draw(start, stop, colorr, tag)
 
+    if redraw_flag:
+        redraw_elems()
+
     if st:
         TAG += 1
 
 
 def standart_draw(start, stop, colorr, tag):
     # global TAG
-    c.create_line([net_to_canv(start), net_to_canv(stop)], width=1, fill=colorr, tag=f't{tag}')
+    c.create_line([list(map(round, net_to_canv(start))), list(map(round, net_to_canv(stop)))], width=1, fill=colorr, tag=f't{tag}')
 
 
 def dda_draw(start, stop, colorr, tag, count_fl=False):
@@ -368,8 +396,8 @@ def dda_draw(start, stop, colorr, tag, count_fl=False):
 
 
 def br_float_draw(start, stop, colorr, tag, count_fl=False):
-    x0, y0 = list(map(int, start))
-    x1, y1 = list(map(int, stop))
+    x0, y0 = list(map(round, start))
+    x1, y1 = list(map(round, stop))
     dx = x1 - x0
     dy = y1 - y0
 
@@ -396,7 +424,7 @@ def br_float_draw(start, stop, colorr, tag, count_fl=False):
 
     if deltaerr <= 1:
         for x in range(x0, x1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
+            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
             error += deltaerr
             if error >= 1.0:
                 y += diry
@@ -404,7 +432,7 @@ def br_float_draw(start, stop, colorr, tag, count_fl=False):
     else:
         deltaerr = 1/deltaerr
         for y in range(y0, y1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
+            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
             error += deltaerr
             if error >= 1.0:
                 x += dirx
@@ -412,8 +440,8 @@ def br_float_draw(start, stop, colorr, tag, count_fl=False):
 
 
 def br_int_draw(start, stop, colorr, tag, count_fl=False):
-    x0, y0 = list(map(int, start))
-    x1, y1 = list(map(int, stop))
+    x0, y0 = list(map(round, start))
+    x1, y1 = list(map(round, stop))
     dx = x1 - x0
     dy = y1 - y0
 
@@ -441,14 +469,14 @@ def br_int_draw(start, stop, colorr, tag, count_fl=False):
 
     if dx >= dy:
         for x in range(x0, x1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
+            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
             error += deltaerr
             if error >= dx + 1:
                 y += diry
                 error -= (dx + 1)
     else:
         for y in range(y0, y1):
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), colorr, tag, count_fl)
+            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
             error += deltaerr1
             if error >= dy + 1:
                 x += dirx
@@ -463,65 +491,68 @@ def change_brightness(col, k):
 
     return rgb_to_hex(col)
 
-def br_smooth_draw(start, stop, colorr, tag, count_fl=False):
-    x0, y0 = list(map(round, (list(map(float, start)))))
-    x1, y1 = list(map(round, list(map(float, stop))))
-    dx = x1 - x0
-    dy = y1 - y0
 
-    if dx <= 0 and dy >= 0 and abs(dx) >= abs(dy) or dx <= 0 and dy <= 0 or dx >= 0 and dy <= 0 and abs(dy) > abs(dx):
-        x0, y0, x1, y1 = x1, y1, x0, y0
-
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    I = 1
-    dxx = abs(x1 - x0 + 1)
-    dyy = abs(y1 - y0 + 1)
-    m = min(dxx, dyy)/max(dxx, dyy)  # max?
-    if not x1-x0 or not y1-y0:
-        m = 1
-    w = I - m
-    e = 1 / 2
-    y = y0
-    x = x0
-    diry = y1 - y0
-    if diry > 0:
-        diry = 1
-    if diry < 0:
-        diry = -1
-
-    dirx = x1 - x0
-    if dirx > 0:
-        dirx = 1
-    if dirx < 0:
-        dirx = -1
-
-    draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, m / 2), tag, count_fl)
-    if dx >= dy:
-        while x < x1:
-            if e < w:
-                x += 1
-                e += m
-            else:
-                x += 1
-                y += diry
-                e -= w
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, e), tag, count_fl)
+def sign(diff):
+    if diff < 0:
+        return -1
+    elif diff == 0:
+        return 0
     else:
-        while y < y1:
-            if e < w:
-                y += 1
-                e += m
+        return 1
+
+
+def br_smooth_draw(start, stop, colorr, tag, count_fl=False):
+    x1, y1 = list(map(round, list(map(float, start))))
+    x2, y2 = list(map(round, list(map(float, stop))))
+
+    if (x2 - x1 == 0) and (y2 - y1 == 0):
+        draw_dot(net_to_canv(x1, y1), None, colorr, tag, count_fl)
+
+    x = x1
+    y = y1
+
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+
+    s1 = sign(x2 - x1)
+    s2 = sign(y2 - y1)
+
+    swaped = 0
+    if dy > dx:
+        tmp = dx
+        dx = dy
+        dy = tmp
+        swaped = 1
+
+    intens = 1
+
+    m = dy / dx
+    e = intens / 2
+
+    m *= intens
+    w = intens - m
+
+    draw_dot(net_to_canv(x, y), None, change_brightness(colorr, e), tag, count_fl)
+
+    i = 1
+
+    while i <= dx:
+        if e < w:
+            if swaped:
+                y += s2
             else:
-                y += 1
-                x += dirx
-                e -= w
-            draw_dot(round(net_to_canv(x, y)[0]), round(net_to_canv(x, y)[1]), change_brightness(colorr, e), tag, count_fl)
+                x += s1
+            e += m
+        else:
+            x += s1
+            y += s2
 
+            e -= w
 
-    # c.create_polygon(list(map(net_to_canv, [[0, 0], [0, 100], [100, 100], [100, 0]])), fill=change_brightness(colorr, k1))
-    #
-    # c.create_polygon(list(map(net_to_canv, [[102, 0], [102, 100], [202, 100], [202, 0]])), fill=change_brightness(colorr, 1-k1))
+        draw_dot(net_to_canv(x, y), None, change_brightness(colorr, e), tag, count_fl)
+
+        i += 1
+
 
 
 def fpart(x):
@@ -529,86 +560,100 @@ def fpart(x):
 
 
 def vu_draw(start, stop, colorr, tag, count_fl=False):
-    x0, y0 = list(map(round, list(map(float, start))))
-    x1, y1 = list(map(round, list(map(float, stop))))
+    x1, y1 = list(map(round, list(map(float, start))))
+    # y1 = start[1]
+    x2, y2 = list(map(round, list(map(float, stop))))
+    # y2 = stop[1]
 
-    dx = x1 - x0
-    dy = y1 - y0
+    if (x2 - x1 == 0) and (y2 - y1 == 0):
+        # draw_dot(net_to_canv(x1, y1), None, change_brightness(colorr, 0.5), tag, count_fl)
+        # if not count_fl:
+        #     draw_dot(net_to_canv(x1, y1+1), None, change_brightness(colorr, 0.5), tag)
+        draw_dot(net_to_canv(x1, y1), None, colorr, tag, count_fl)
 
-    if dx <= 0 and dy >= 0 and abs(dx) >= abs(dy) or dx <= 0 and dy <= 0 or dx >= 0 and dy <= 0 and abs(dy) > abs(dx):
-        x0, y0, x1, y1 = x1, y1, x0, y0
+    dx = x2 - x1
+    dy = y2 - y1
 
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    gradient = min(dx, dy)/max(dx, dy)
+    m = 1
+    step = 1
+    intens = 1
 
-    diry = y1 - y0
-    if diry > 0:
-        diry = 1
-    if diry < 0:
-        diry = -1
+    steps = 0
 
-    dirx = x1 - x0
-    if dirx > 0:
-        dirx = 1
-    if dirx < 0:
-        dirx = -1
+    if fabs(dy) > fabs(dx):
+        if dy != 0:
+            m = dx / dy
+        m1 = m
 
-    # обработать начальную точку
-    xend = round(x0)
-    yend = y0 + gradient * (xend - x0)
-    xgap = 1 - fpart(x0 + 0.5)
-    xpxl1 = xend  # будет использоваться в основном цикле
-    ypxl1 = int(yend)
-    draw_dot(round(net_to_canv(xpxl1, ypxl1)[0]), round(net_to_canv(xpxl1, ypxl1)[1]),
-             change_brightness(colorr, (1 - fpart(yend)) * xgap), tag, count_fl)
-    draw_dot(round(net_to_canv(xpxl1, ypxl1+1)[0]), round(net_to_canv(xpxl1, ypxl1+1)[1]),
-             change_brightness(colorr, fpart(yend) * xgap), tag, count_fl)
-    intery = yend + gradient  # первое y - пересечение для цикла
-    interx = xend + gradient
+        if y1 > y2:
+            m1 *= -1
+            step *= -1
 
-    # обработать конечную точку
-    xend = round(x1)
-    yend = y1 + gradient * (xend - x1)
-    xgap = fpart(x1 + 0.5)
-    xpxl2 = xend  # будет использоваться в основном цикле
-    ypxl2 = int(yend)
-    draw_dot(round(net_to_canv(xpxl2, ypxl2)[0]), round(net_to_canv(xpxl2, ypxl2)[1]),
-             change_brightness(colorr, (1 - fpart(yend)) * xgap), tag, count_fl)
-    draw_dot(round(net_to_canv(xpxl2, ypxl2 + 1)[0]), round(net_to_canv(xpxl2, ypxl2 + 1)[1]),
-             change_brightness(colorr, fpart(yend) * xgap), tag, count_fl)
+        y_end = round(y2) - 1 if (dy < dx) else (round(y2) + 1)
 
-    # основной цикл
-    if abs(dx) >= abs(dy):
-        for x in range(xpxl1, xpxl2):
-            if intery >= 0:
-                draw_dot(round(net_to_canv(x, int(intery))[0]), round(net_to_canv(x, int(intery))[1]),
-                         change_brightness(colorr, 1 - fpart(intery)), tag, count_fl)
-                if not count_fl:
-                    draw_dot(round(net_to_canv(x, int(intery)+1)[0]), round(net_to_canv(x, int(intery)+1)[1]),
-                             change_brightness(colorr, fpart(intery)), tag)
-            else:
-                draw_dot(round(net_to_canv(x, int(intery))[0]), round(net_to_canv(x, int(intery))[1]),
-                         change_brightness(colorr, fpart(intery)), tag, count_fl)
-                if not count_fl:
-                    draw_dot(round(net_to_canv(x, int(intery) - 1)[0]), round(net_to_canv(x, int(intery) + 1)[1]),
-                             change_brightness(colorr, 1 - fpart(intery)), tag)
-            intery += gradient*diry
+        for y_cur in range(round(y1), y_end, step):
+            d1 = x1 - floor(x1)
+            d2 = 1 - d1
+
+            if not d1 or not d2:
+                d1 = d2 = 0.5
+
+            draw_dot(net_to_canv(int(x1) + 1, y_cur), None, change_brightness(colorr, fabs(d1) * intens), tag, count_fl)
+            if not count_fl:
+                draw_dot(net_to_canv(int(x1), y_cur), None, change_brightness(colorr, fabs(d2) * intens), tag)
+
+            # dot1 = [int(x1) + 1, y_cur, choose_color(colorr, round(fabs(d2) * intens))]
+            #
+            # dot2 = [int(x1), y_cur, choose_color(colorr, round(fabs(d1) * intens))]
+
+            # if count_fl and y_cur < y2:
+            #     if int(x1) != int(x1 + m):
+            #         steps += 1
+
+            # dots.append(dot1)
+            # dots.append(dot2)
+
+            x1 += m1
+
     else:
-        for y in range(ypxl1, ypxl2):
-            if interx >= 0:
-                draw_dot(round(net_to_canv(int(interx), y)[0]), round(net_to_canv(int(interx), y)[1]),
-                         change_brightness(colorr, 1 - fpart(interx)), tag, count_fl)
-                if not count_fl:
-                    draw_dot(round(net_to_canv(int(interx)+1, y)[0]), round(net_to_canv(int(interx)+1, y)[1]),
-                             change_brightness(colorr, fpart(interx)), tag)
-            else:
-                draw_dot(round(net_to_canv(int(interx), y)[0]), round(net_to_canv(int(interx), y)[1]),
-                         change_brightness(colorr, fpart(interx)), tag, count_fl)
-                if not count_fl:
-                    draw_dot(round(net_to_canv(int(interx) + 1, y)[0]), round(net_to_canv(int(interx) - 1, y)[1]),
-                             change_brightness(colorr, 1 - fpart(interx)), tag)
-            interx += gradient*dirx
+        if dx != 0:
+            m = dy / dx
+
+        m1 = m
+
+        if x1 > x2:
+            step *= -1
+            m1 *= -1
+
+        x_end = round(x2) - 1 if (dy > dx) else (round(x2) + 1)
+
+        for x_cur in range(round(x1), x_end, step):
+            d1 = y1 - floor(y1)
+            d2 = 1 - d1
+
+            if not d1 or not d2:
+                d1 = d2 = 0.5
+
+            draw_dot(net_to_canv(x_cur, int(y1) + 1), None, change_brightness(colorr, fabs(d1) * intens), tag, count_fl)
+            if not count_fl:
+                draw_dot(net_to_canv(x_cur, int(y1)), None, change_brightness(colorr, fabs(d2) * intens), tag)
+
+            # dot1 = [x_cur, int(y1) + 1, choose_color(colorr, round(fabs(d2) * intens))]
+            # dot2 = [x_cur, int(y1), choose_color(colorr, round(fabs(d1) * intens))]
+
+            # if count_fl and x_cur < x2:
+            #     if int(y1) != int(y1 + m):
+            #         steps += 1
+
+            # dots.append(dot1)
+            # dots.append(dot2)
+
+            y1 += m1
+
+    # if count_fl:
+    #     return steps
+    # else:
+    #     return dots
 
 
 def line_col_choose():
@@ -877,7 +922,7 @@ def coordinate_field_creation():
     c.create_line(225 + dx / 4, 5, 225 + dx / 4, 180, fill='black',
                   width=1, dash=(5, 9), tag='net')
 
-    c.create_line(440 + dx / 2, 5, 440 + dx / 2, 180, fill='black',
+    c.create_line(440 + dx / 1.8, 5, 440 + dx / 1.8, 180, fill='black',
                   width=1, dash=(5, 9), tag='net')
 
     for i in range(round(center[0] + 50), 665 + dx, 50):
@@ -903,13 +948,15 @@ def coordinate_field_creation():
 
 def start_state():
     global story, rot_coords, res_coords, lines, bunches, TAG
-    scale(200, 200)
+    scale(290, 290)
     story = []
     lines = []
     bunches = []
     clean_all()
     for i in range(TAG):
         del_with_tag(f't{i}')
+    del_with_tag('start')
+    del_with_tag('stop')
     TAG = 0
     ent1.insert(0, 0)
     ent2.insert(0, 200)
