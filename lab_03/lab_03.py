@@ -621,11 +621,14 @@ def vu_draw(start, stop, colorr, tag, count_fl=False):
 
         m1 = m
 
+        x_end = 0
         if x1 > x2:
             step *= -1
             m1 *= -1
+            if dy == dx:
+                x_end -= 2
 
-        x_end = round(x2) - 1 if (dy > dx) else (round(x2) + 1)
+        x_end += round(x2) - 1 if (dy > dx) else (round(x2) + 1)
 
         for x_cur in range(round(x1), x_end, step):
             d1 = y1 - floor(y1)
