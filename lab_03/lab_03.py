@@ -68,7 +68,7 @@ btn_back = Button(window, text='назад', fg='purple', command=lambda: back()
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
 btn_draw = Button(window, text='Нарисовать отрез.', fg='blue', command=lambda: draw_line(TAG))
 btn_draw_bunch = Button(window, text='Нарисовать пучок', fg='blue', command=lambda: draw_bunch(TAG))
-btn_colorimeter = Button(window, text='🎨', fg='blue', command=lambda: os.system('open /System/Applications/Utilities/Digital\ Color\ Meter.app'))
+btn_colorimeter = Button(window, text='🔍', fg='blue', command=lambda: os.system('open /System/Applications/Utilities/Digital\ Color\ Meter.app'))
 btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 
 set0 = Radiobutton(text="➚", fg='black', variable=var, value=0)
@@ -267,10 +267,14 @@ def redraw_elems():
 def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False, st=1):
     global TAG
     if not start:
-        start, stop = [ent1.get(), ent9.get()], [ent2.get(), ent8.get()]
-        met = method.get()
-        colorr = color
-        lines.append([tag, start, stop, color, met])
+        try:
+            start, stop = [float(ent1.get()), float(ent9.get())], [float(ent2.get()), float(ent8.get())]
+            met = method.get()
+            colorr = color
+            lines.append([tag, start, stop, color, met])
+        except:
+            box.showinfo('Error', 'Некорректные данные!')
+            return
 
     # if max(abs(int(start[0])), abs(int(stop[0]))) > 300 + dx/2 or max(abs(int(start[1])), abs(int(stop[1]))) > 300 + dy/2:
     #     box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
@@ -314,8 +318,10 @@ def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, 
             center = [float(ent3.get()), float(ent4.get())]
             radius = float(ent5.get())
             step = int(ent6.get())
+            if step < 1 or step > 360:
+                raise
         except:
-            box.showinfo('Error', 'Некорректные координаты!')
+            box.showinfo('Error', 'Некорректные данные!')
             return
 
         met = method.get()
