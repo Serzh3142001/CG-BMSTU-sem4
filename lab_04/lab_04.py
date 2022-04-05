@@ -315,6 +315,7 @@ def draw_circle(tag, center=None, radius=None, colorr=None, met=None, count_fl=F
         redraw_flag = 1
 
     if st:
+        var.set(0)
         story.append(f'del_with_tag("t{tag}");circles.pop()')
 
     if met == 0:
@@ -358,6 +359,7 @@ def draw_ellipse(tag, center=None, axcises=None, colorr=None, met=None, count_fl
         redraw_flag = 1
 
     if st:
+        var.set(0)
         story.append(f'del_with_tag("t{tag}");ellipses.pop()')
 
     if met == 0:
@@ -384,17 +386,20 @@ def draw_circle_bunch(tag, center=None, colorr=None, met=None, radiuses=None, st
         try:
             center = [float(ent3.get()), float(ent4.get())]
             radiuses = [float(ent5.get()), float(ent6.get())]
-            if radiuses[0] > radiuses[1]:
-                box.showinfo('Error', 'Начальный радиус больше конечного!')
+            if radiuses[0] >= radiuses[1]:
+                box.showinfo('Error', 'Начальный радиус >= конечному!')
                 return
-            if set10.get():
+            # print(set10.get())
+            if set10.get() == 'Кол-во окружностей':
                 step_or_count = int(ent11.get())
                 step_or_count = [step_or_count, 'count']
+                if step_or_count[0] <= 1:
+                    raise
             else:
                 step_or_count = float(ent11.get())
                 step_or_count = [step_or_count, 'step']
-            if step_or_count[0] <= 0:
-                raise
+                if step_or_count[0] <= 0:
+                    raise
 
         except:
             box.showinfo('Error', 'Некорректные данные!')
@@ -414,6 +419,7 @@ def draw_circle_bunch(tag, center=None, colorr=None, met=None, radiuses=None, st
         redraw_flag = 1
 
     if st:
+        var.set(1)
         story.append(f'del_with_tag("t{tag}");circle_bunches.pop()')
 
     if step_or_count[1] == 'step':
@@ -450,10 +456,14 @@ def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, st
                 raise
 
             step_and_count = [float(ent14.get()), int(ent16.get())]
-            if set11.get():
+            print(set11.get())
+            if set11.get() == 'X':
                 step_and_count.append('x')
-            else:
+            elif set11.get() == 'Y':
                 step_and_count.append('y')
+            else:
+                step_and_count.append('xy')
+
             if step_and_count[0] <= 0 or step_and_count[1] <= 0:
                 raise
 
@@ -465,8 +475,19 @@ def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, st
         colorr = color
         ellipse_bunches.append([tag, center, colorr, met, axcises, step_and_count])
 
-    max_stop_x = abs(center[0]) + axcises[0] + step_and_count[0]*step_and_count[1]
-    max_stop_y = abs(center[1]) + axcises[1] + step_and_count[0]*step_and_count[1]
+    change_index = []
+    if step_and_count[2] == 'x':
+        max_stop_x = abs(center[0]) + axcises[0] + step_and_count[0]*step_and_count[1]
+        max_stop_y = abs(center[1]) + axcises[1]
+        change_index.append(0)
+    elif step_and_count[2] == 'y':
+        max_stop_x = abs(center[0]) + axcises[0]
+        max_stop_y = abs(center[1]) + axcises[1] + step_and_count[0] * step_and_count[1]
+        change_index.append(1)
+    else:
+        max_stop_x = abs(center[0]) + axcises[0] + step_and_count[0] * step_and_count[1]
+        max_stop_y = abs(center[1]) + axcises[1] + step_and_count[0] * step_and_count[1]
+        change_index += [0, 1]
     # print(max_stop_x, max_stop_y)
 
     redraw_flag = 0
@@ -475,31 +496,27 @@ def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, st
         redraw_flag = 1
 
     if st:
+        var.set(1)
         story.append(f'del_with_tag("t{tag}");ellipse_bunches.pop()')
 
-    ######
-    change_index = 0
-    if step_and_count[2] == 'x':
-        change_index = 0
-    else:
-        change_index = 1
-
+    buf_axises = [axcises[0], axcises[1]]
     for i in range(step_and_count[1]):
-
         if met == 0:
-            standart_ellipse_draw(center, axcises, colorr[1], tag)
+            standart_ellipse_draw(center, buf_axises, colorr[1], tag)
         elif met == 1:
-            canon_equation_ellipse_draw(center, axcises, colorr[1], tag)
+            canon_equation_ellipse_draw(center, buf_axises, colorr[1], tag)
         elif met == 2:
-            param_equation_ellipse_draw(center, axcises, colorr[1], tag)
+            param_equation_ellipse_draw(center, buf_axises, colorr[1], tag)
         elif met == 3:
-            br_ellipse_draw(center, axcises, colorr[1], tag)
+            br_ellipse_draw(center, buf_axises, colorr[1], tag)
         elif met == 4:
-            middle_dot_ellipse_draw(center, axcises, colorr, tag)
-        axcises[change_index] += step_and_count[0]
+            middle_dot_ellipse_draw(center, buf_axises, colorr, tag)
 
-    # if redraw_flag:
-    #     redraw_elems()
+        for ind in change_index:
+            buf_axises[ind] += step_and_count[0]
+
+    if redraw_flag:
+        redraw_elems()
 
     if st:
         TAG += 1
