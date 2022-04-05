@@ -4,6 +4,7 @@ from tkinter import messagebox, ttk, colorchooser
 import tkinter.messagebox as box
 import matplotlib.pyplot as plt
 import numpy as np
+from time import *
 import os
 import sys
 
@@ -66,7 +67,7 @@ label28 = Label(text=':', font='Arial 14')
 
 btn_col_line = Button(window, text='v', fg='green', command=lambda: line_col_choose())
 btn_col_bg = Button(window, text='v', fg='green', command=lambda: bg_col_choose())
-btn_hist = Button(window, text='Время', fg='green', command=lambda: count_steps())
+btn_hist = Button(window, text='Время', fg='green', command=lambda: measure_time())
 btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
 btn_draw_circle = Button(window, text='Нарисовать ○', fg='blue', command=lambda: draw_circle(TAG))
@@ -196,34 +197,102 @@ old_dot = [0, 0]
 old_angl = 0
 cnt = -1
 TAG = 0
+TIME_FLAG = 0
 
 
-def rgb_to_hex(rgb):
-    rgb = tuple(map(int, rgb))
-    return '#%02x%02x%02x' % rgb
+def measure_time():
+    global TAG, TIME_FLAG
+    TIME_FLAG = 1
+    radiuses = [r for r in range(100, 10002, 1000)]
+
+    standart_circle_times = []
+    canon_equation_circle_times = []
+    param_equation_circle_times = []
+    br_circle_times = []
+    middle_dot_circle_times = []
+
+    standart_ellipse_times = []
+    canon_equation_ellipse_times = []
+    param_equation_ellipse_times = []
+    br_ellipse_times = []
+    middle_dot_ellipse_times = []
+
+    tasks1 = '''standart_circle
+    canon_equation_circle
+    param_equation_circle
+    br_circle
+    middle_dot_circle'''
+
+    tasks2 = '''standart_ellipse
+    canon_equation_ellipse
+    param_equation_ellipse
+    br_ellipse
+    middle_dot_ellipse'''
+
+
+    for radius in radiuses:
+        for task in tasks1.split('\n'):
+            start = time()
+            eval(f'{task}_draw([0, 0], {radius}, color[1], TAG)')
+            stop = time()
+            eval(f'{task}_times.append(stop-start)')
+            if task == 'standart_circle':
+                story.append(f'del_with_tag("t{TAG}")')
+                back()
+                TAG += 1
+
+
+        for task in tasks2.split('\n'):
+            start = time()
+            eval(f'{task}_draw([0, 0], {[radius, 0.5*radius]}, color[1], TAG)')
+            stop = time()
+            eval(f'{task}_times.append(stop-start)')
+            if task == 'standart_ellipse':
+                story.append(f'del_with_tag("t{TAG}")')
+                back()
+                TAG += 1
+
+    plt.figure(figsize=(15, 6))
+
+    plt.subplot(1, 2, 1)
+    plt.title("Замеры для окружностей: ")
+    plt.plot(radiuses, standart_circle_times, label="Библиотечный\nспособ")
+    plt.plot(radiuses, canon_equation_circle_times, label="Каноническое\nуравнеие")
+    plt.plot(radiuses, param_equation_circle_times, label="Параметрическое\nуравнение")
+    plt.plot(radiuses, br_circle_times, label="Брезенхем")
+    plt.plot(radiuses, middle_dot_circle_times, label="Алгоритм\nсредней точки")
+    plt.legend()
+    plt.ylabel("Время")
+    plt.xlabel("Величина радиуса")
+
+    plt.subplot(1, 2, 2)
+    plt.title("Замеры для эллипсов: ")
+    plt.plot(radiuses, standart_ellipse_times, label="Библиотечный\nспособ")
+    plt.plot(radiuses, canon_equation_ellipse_times, label="Каноническое\nуравнеие")
+    plt.plot(radiuses, param_equation_ellipse_times, label="Параметрическое\nуравнение")
+    plt.plot(radiuses, br_ellipse_times, label="Брезенхем")
+    plt.plot(radiuses, middle_dot_ellipse_times, label="Алгоритм\nсредней точки")
+    plt.legend()
+    plt.ylabel("Время")
+    plt.xlabel("Величина радиуса")
+
+    plt.show()
+
+    TIME_FLAG = 0
 
 
 def draw_dot(x, y, colorr, tag, count_fl=False):
+    if TIME_FLAG:
+        return
+
     if type(x) == list:
         y = x[1]
         x = x[0]
 
     global old_dot, old_angl, cnt
+    d = 1
+    c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=f"t{tag}")
 
-    if not count_fl:
-        d = 1
-        c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=f"t{tag}")
-    else:
-        if x - old_dot[0]:
-            new_angl = abs(y - old_dot[1])/abs(x - old_dot[0])
-        else:
-            new_angl = abs(x - old_dot[0]) / abs(y - old_dot[1])
-
-        if new_angl != old_angl:
-            cnt += 1
-
-        old_angl = new_angl
-        old_dot = [x, y]
 
 
 def draw_dots_circle(dot_c, dot_dif, colorr, tag):
@@ -255,57 +324,6 @@ def draw_dots_ellipse(dot_c, dot_dif, colorr, tag):
     draw_dot(net_to_canv(x_c - x, y_c + y), None, colorr, tag)
     draw_dot(net_to_canv(x_c + x, y_c - y), None, colorr, tag)
     draw_dot(net_to_canv(x_c - x, y_c - y), None, colorr, tag)
-
-
-def count_steps():
-    global cnt, old_dot, old_angl
-    hist1 = []
-    hist2 = []
-    hist3 = []
-    hist4 = []
-    hist5 = []
-
-    try:
-        center = [float(ent3.get()), float(ent4.get())]
-        radius = float(ent5.get())
-        step = int(ent6.get())
-    except:
-        box.showinfo('Error', 'Некорректные координаты!')
-        return
-
-    colorr = color
-    for met in range(1, 6):
-        for alpha in range(0, 91, step):
-            start = center
-            stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
-            draw_ellipse(0, start, stop, colorr, met, True, 0)
-            for i in range(cnt//2):
-                eval(f'hist{met}.append(alpha)')
-            cnt = -1
-            old_dot = [0, 0]
-            old_angl = 0
-
-    plt.figure(figsize=(10, 8))
-
-    plt.subplot(2, 3, 1)
-    plt.hist(hist1, 90)
-    plt.ylabel('Кол-во ступенек')
-    plt.title('ЦДА')
-    plt.subplot(2, 3, 2)
-    plt.hist(hist2, 90)
-    plt.title('Брезенхейм (float)')
-    plt.subplot(2, 3, 3)
-    plt.hist(hist3, 90)
-    plt.title('Брезенхейм (int)')
-    plt.subplot(2, 3, 4)
-    plt.hist(hist4, 90)
-    plt.xlabel('Угол')
-    plt.title('Брезенхейм (устр. ступ)')
-    plt.subplot(2, 3, 5)
-    plt.hist(hist5, 90)
-    plt.title('ВУ')
-
-    plt.show()
 
 
 def redraw_elems():
@@ -340,9 +358,10 @@ def draw_circle(tag, center=None, radius=None, colorr=None, met=None, count_fl=F
     redraw_flag = 0
     max_stop_x = abs(int(center[0])) + radius
     max_stop_y = abs(int(center[1])) + radius
-    if max_stop_x > (300 + dx / 2) * sz or max_stop_y > (300 + dy / 2) * sz:
-        scale(max_stop_x, max_stop_y)
-        redraw_flag = 1
+    if not TIME_FLAG:
+        if max_stop_x > (300 + dx / 2) * sz or max_stop_y > (300 + dy / 2) * sz:
+            scale(max_stop_x, max_stop_y)
+            redraw_flag = 1
 
     if st:
         var.set(0)
@@ -359,7 +378,7 @@ def draw_circle(tag, center=None, radius=None, colorr=None, met=None, count_fl=F
     elif met == 4:
         middle_dot_circle_draw(center, radius, colorr[1], tag, count_fl)
 
-    if redraw_flag:
+    if redraw_flag and not TIME_FLAG:
         redraw_elems()
 
     if st:
@@ -505,19 +524,22 @@ def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, st
         colorr = color
         ellipse_bunches.append([tag, center, colorr, met, axcises, step_and_count])
 
-    change_index = []
+    change_index1 = []
+    change_index2 = []
     if step_and_count[2] == 'x':
         max_stop_x = abs(center[0]) + axcises[0] + step_and_count[0]*step_and_count[1]
-        max_stop_y = abs(center[1]) + axcises[1]
-        change_index.append(0)
+        max_stop_y = abs(center[1]) + step_and_count[0]*step_and_count[1]*axcises[1]/axcises[0]
+        change_index1.append(0)
+        change_index2.append(1)
     elif step_and_count[2] == 'y':
-        max_stop_x = abs(center[0]) + axcises[0]
+        max_stop_x = abs(center[0]) + step_and_count[0]*step_and_count[1]*axcises[0]/axcises[1]
         max_stop_y = abs(center[1]) + axcises[1] + step_and_count[0] * step_and_count[1]
-        change_index.append(1)
+        change_index1.append(1)
+        change_index2.append(0)
     else:
         max_stop_x = abs(center[0]) + axcises[0] + step_and_count[0] * step_and_count[1]
         max_stop_y = abs(center[1]) + axcises[1] + step_and_count[0] * step_and_count[1]
-        change_index += [0, 1]
+        change_index1 += [0, 1]
     # print(max_stop_x, max_stop_y)
 
     redraw_flag = 0
@@ -542,8 +564,10 @@ def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, st
         elif met == 4:
             middle_dot_ellipse_draw(center, buf_axises, colorr[1], tag)
 
-        for ind in change_index:
+        for ind in change_index1:
             buf_axises[ind] += step_and_count[0]
+        for ind in change_index2:
+            buf_axises[ind] += step_and_count[0] * (axcises[0]/axcises[1] if not ind else axcises[1]/axcises[0])
 
     if redraw_flag:
         redraw_elems()
@@ -553,7 +577,6 @@ def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, st
 
 
 def standart_circle_draw(center, radius, colorr, tag):
-    # global TAG
     x1, y1 = list(map(round, net_to_canv(center[0]-radius, center[1]+radius)))
     x2, y2 = list(map(round, net_to_canv(center[0] + radius, center[1] - radius)))
 
@@ -576,9 +599,6 @@ def canon_equation_circle_draw(center, radius, colorr, tag, count_fl=False):
         x += 1
 
 
-# def param_equation_circle_draw(center, radius, colorr, tag, count_fl=False):
-#     pass
-
 def param_equation_circle_draw(center, radius, colorr, tag, count_fl=False):
     x_c = center[0]
     y_c = center[1]
@@ -596,11 +616,7 @@ def param_equation_circle_draw(center, radius, colorr, tag, count_fl=False):
         alpha += step
 
 
-# def br_circle_draw(center, radius, colorr, tag, count_fl=False):
-#     pass
-
 def br_circle_draw(center, radius, colorr, tag, count_fl=False):
-
     x_c = round(center[0])
     y_c = round(center[1])
 
@@ -642,9 +658,6 @@ def br_circle_draw(center, radius, colorr, tag, count_fl=False):
             delta_i = delta_i - 2 * y + 1
 
 
-# def middle_dot_circle_draw(center, radius, colorr, tag, count_fl=False):
-#     pass
-
 def middle_dot_circle_draw(center, radius, colorr, tag, count_fl=False):
     x_c = center[0]
     y_c = center[1]
@@ -668,7 +681,6 @@ def middle_dot_circle_draw(center, radius, colorr, tag, count_fl=False):
 
 
 def standart_ellipse_draw(center, axcises, colorr, tag):
-    # global TAG
     x1, y1 = list(map(round, net_to_canv(center[0]-axcises[0], center[1]+axcises[1])))
     x2, y2 = list(map(round, net_to_canv(center[0] + axcises[0], center[1] - axcises[1])))
 
@@ -774,7 +786,6 @@ def br_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
 
 
 def middle_dot_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
-
     x_c = center[0]
     y_c = center[1]
 
@@ -823,28 +834,6 @@ def middle_dot_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
         delta = delta + r_a_2 * (2 * y + 1)
 
 
-def change_brightness(col, k):
-    col = col[0]
-    col = list(col)
-    for i in range(3):
-        col[i] += (255 - col[i]) * (1 - k)
-
-    return rgb_to_hex(col)
-
-
-def sign(diff):
-    if diff < 0:
-        return -1
-    elif diff == 0:
-        return 0
-    else:
-        return 1
-
-
-def fpart(x):
-    return abs(x - int(x))
-
-
 def line_col_choose():
     global color
     del_with_tag('color')
@@ -867,31 +856,6 @@ def bg_col_choose():
         return
 
     c.create_polygon(resized_coords1, width=2, fill=color1[1], tag='color1')
-
-
-def cart_sum(a, b):
-    return a[0] + b[0], a[1] + b[1]
-
-
-def cart_dif(a, b):
-    return a[0] - b[0], a[1] - b[1]
-
-
-def rotate(a, alpha, center):
-    a = cart_dif(a, center)
-    res = (cos(alpha) * a[0] - sin(alpha) * a[1],
-           sin(alpha) * a[0] + cos(alpha) * a[1])
-    res = cart_sum(res, center)
-    return res
-
-
-def resize(a, k, center):
-    k1 = k[0]
-    k2 = k[1]
-    a = cart_dif(a, center)
-    res = (a[0] * k1, a[1] * k2)
-    res = cart_sum(res, center)
-    return res
 
 
 def net_to_canv(x, y=None):
@@ -1093,7 +1057,7 @@ def coordinate_field_creation():
     if not color1[1]:
         color1 = ['', 'white']
 
-    c.create_polygon([[65, 210], [65, 810 + dy], [665 + dx, 810 + dy], [665 + dx, 210]], width=2, fill=color1[1],
+    c.create_polygon([[65, 210], [65, 811 + dy], [666 + dx, 811 + dy], [666 + dx, 210]], width=2, fill=color1[1],
                      tag='bg')
     center[0] = round(365 + dx / 2)
     center[1] = round(510 + dy / 2)
@@ -1171,8 +1135,8 @@ def start_state():
     ent9.insert(0, 0)
     ent10.insert(0, 200)
     ent11.insert(0, 10)
-    ent12.insert(0, 10)
-    ent13.insert(0, 40)
+    ent12.insert(0, 15)
+    ent13.insert(0, 5)
     ent14.insert(0, 10)
     # ent15.insert(0, 0)
     ent16.insert(0, 20)
