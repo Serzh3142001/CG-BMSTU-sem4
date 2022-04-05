@@ -213,7 +213,6 @@ def draw_dot(x, y, colorr, tag, count_fl=False):
     if not count_fl:
         d = 1
         c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=f"t{tag}")
-        # print(tag)
     else:
         if x - old_dot[0]:
             new_angl = abs(y - old_dot[1])/abs(x - old_dot[0])
@@ -227,12 +226,6 @@ def draw_dot(x, y, colorr, tag, count_fl=False):
         old_dot = [x, y]
 
 
-def draw_pixel(canvas_win, dot):
-    canvas_win.create_line(dot[0], dot[1], dot[0] + 1, dot[1], fill = dot[2].hex)
-    # for dot in dots:
-    #    canvas_win.create_line(dot[0], dot[1], dot[0] + 1, dot[1], fill = dot[2].hex)
-
-
 def draw_dots_circle(dot_c, dot_dif, colorr, tag):
     x_c = dot_c[0]
     y_c = dot_c[1]
@@ -244,18 +237,11 @@ def draw_dots_circle(dot_c, dot_dif, colorr, tag):
     draw_dot(net_to_canv(x_c - x, y_c + y), None, colorr, tag)
     draw_dot(net_to_canv(x_c + x, y_c - y), None, colorr, tag)
     draw_dot(net_to_canv(x_c - x, y_c - y), None, colorr, tag)
-    # draw_pixel(canvas_win, [x_c - x, y_c + y, color])
-    # draw_pixel(canvas_win, [x_c + x, y_c - y, color])
-    # draw_pixel(canvas_win, [x_c - x, y_c - y, color])
 
     draw_dot(net_to_canv(x_c + y, y_c + x), None, colorr, tag)
     draw_dot(net_to_canv(x_c - y, y_c + x), None, colorr, tag)
     draw_dot(net_to_canv(x_c + y, y_c - x), None, colorr, tag)
     draw_dot(net_to_canv(x_c - y, y_c - x), None, colorr, tag)
-    # draw_pixel(canvas_win, [x_c + y, y_c + x, color])
-    # draw_pixel(canvas_win, [x_c - y, y_c + x, color])
-    # draw_pixel(canvas_win, [x_c + y, y_c - x, color])
-    # draw_pixel(canvas_win, [x_c - y, y_c - x, color])
 
 
 def draw_dots_ellipse(dot_c, dot_dif, colorr, tag):
@@ -269,10 +255,6 @@ def draw_dots_ellipse(dot_c, dot_dif, colorr, tag):
     draw_dot(net_to_canv(x_c - x, y_c + y), None, colorr, tag)
     draw_dot(net_to_canv(x_c + x, y_c - y), None, colorr, tag)
     draw_dot(net_to_canv(x_c - x, y_c - y), None, colorr, tag)
-    # draw_pixel(canvas_win, [x_c + x, y_c + y, colorr])
-    # draw_pixel(canvas_win, [x_c - x, y_c + y, colorr])
-    # draw_pixel(canvas_win, [x_c + x, y_c - y, colorr])
-    # draw_pixel(canvas_win, [x_c - x, y_c - y, colorr])
 
 
 def count_steps():
@@ -693,9 +675,6 @@ def standart_ellipse_draw(center, axcises, colorr, tag):
     c.create_oval(x1, y1, x2, y2, width=1, outline=colorr, tag=f't{tag}')
 
 
-# def canon_equation_ellipse_draw(center, radius, colorr, tag, count_fl=False):
-#     pass
-
 def canon_equation_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
     x_c = center[0]
     y_c = center[1]
@@ -729,9 +708,6 @@ def canon_equation_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
         y += 1
 
 
-# def param_equation_ellipse_draw(center, radius, colorr, tag, count_fl=False):
-#     pass
-
 def param_equation_ellipse_draw(center, excises, colorr, tag, count_fl=False):
     x_c = center[0]
     y_c = center[1]
@@ -752,18 +728,15 @@ def param_equation_ellipse_draw(center, excises, colorr, tag, count_fl=False):
         alpha += step
 
 
-# def br_ellipse_draw(center, radius, colorr, tag, count_fl=False):
-#     pass
-
-def br_ellipse_draw(center, radius, colorr, tag, count_fl=False):
+def br_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
     x_c = round(center[0])
     y_c = round(center[1])
 
     x = 0
-    y = radius[1]
+    y = axcises[1]
 
-    r_a_2 = radius[0] * radius[0]
-    r_b_2 = radius[1] * radius[1]
+    r_a_2 = axcises[0] * axcises[0]
+    r_b_2 = axcises[1] * axcises[1]
 
     delta_i = r_b_2 - r_a_2 * (2 * y + 1)
 
@@ -799,9 +772,6 @@ def br_ellipse_draw(center, radius, colorr, tag, count_fl=False):
             y = y - 1
             delta_i = delta_i - (2 * y) * r_a_2 + r_a_2
 
-
-# def middle_dot_ellipse_draw(center, radius, colorr, tag, count_fl=False):
-#     pass
 
 def middle_dot_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
 
