@@ -1,11 +1,13 @@
 from math import *
 from tkinter import *
+from tkinter import messagebox, ttk, colorchooser
 import tkinter.messagebox as box
-from tkinter import messagebox
-from tkinter import colorchooser
 import matplotlib.pyplot as plt
+import numpy as np
 import os
+import sys
 
+os.system(f'python3 ../../../gen_navigation.py {sys.argv[0][-5:-3]}')
 
 window = Tk()
 
@@ -23,119 +25,139 @@ ent5 = Entry(width=3)
 ent6 = Entry(width=3)
 ent8 = Entry(width=3)
 ent9 = Entry(width=3)
+ent10 = Entry(width=3)
+ent11 = Entry(width=3)
+ent12 = Entry(width=3)
+ent13 = Entry(width=3)
+ent14 = Entry(width=3)
+# ent15 = Entry(width=3)
+ent16 = Entry(width=3)
 ent1.place(x=70, y=40)
 ent2.place(x=70, y=70)
-ent8.place(x=115, y=70)
+# ent8.place(x=115, y=70)
 ent9.place(x=115, y=40)
 ent1.insert(0, 0)
 ent2.insert(0, 200)
-ent8.insert(0, 200)
+# ent8.insert(0, 200)
 ent9.insert(0, 0)
 
-label1 = Label(text='Координаты отрезка:', font='Arial 15')
-label1.place(x=60, y=5)
-label2 = Label(text='Пучок отрезков:', font='Arial 15')
-label3 = Label(text='Центр:', font='Arial 15')
+label1 = Label(text='Параметры окружности (эллипса):', fg='green', font='Arial 12')
+label2 = Label(text='Параметры пучка окружностей (эллипсов):', fg='green', font='Arial 13')
+label4 = Label(text='Центр:', font='Arial 15')
 
-label4 = Label(text='Начало:', font='Arial 15')
-label5 = Label(text='Конец:', font='Arial 15')
-label6 = Label(text='Цвет:', font='Arial 15')
-label7 = Label(text='Радиус, шаг:', font='Arial 13')
-label11 = Label(text='Способ:', font='Arial 15')
-label14 = Label(text='°', font='Arial 17')
+label3 = Label(text='             Центр:', font='Arial 15')
+label5 = Label(text='Радиус:', font='Arial 15')
+label6 = Label(text='  Цвет:', font='Arial 15')
+label7 = Label(text='    R (нач., кон.):', font='Arial 14')
+label11 = Label(text='Алгоритм:', fg='green', font='Arial 15')
+# label14 = Label(text='°', font='Arial 17')
 label18 = Label(text='⌘Z', font='Arial 11', fg='orange')
 label19 = Label(text='x:', font='Arial 11', fg='grey')
 label20 = Label(text='y:', font='Arial 11', fg='grey')
 label21 = Label(text='x:', font='Arial 11', fg='grey')
 label22 = Label(text='y:', font='Arial 11', fg='grey')
 label23 = Label(text='Цвет фона:', font='Arial 15')
-
-label1.place(x=5, y=5)
-label4.place(x=5, y=43)
-label5.place(x=15, y=73)
-label6.place(x=22, y=103)
-label11.place(x=535, y=43)
-label18.place(x=20, y=120)
-label19.place(x=70, y=25)
-label20.place(x=115, y=25)
-label23.place(x=20, y=830)
+label24 = Label(text='Полуоси:', font='Arial 14')
+label25 = Label(text='   Нач. полуоси:', font='Arial 14')
+label26 = Label(text='Шаг п-оси         ', font='Arial 14')
+label27 = Label(text='Кол-во эллипсов:', font='Arial 13')
+label28 = Label(text=':', font='Arial 14')
 
 
 btn_col_line = Button(window, text='v', fg='green', command=lambda: line_col_choose())
 btn_col_bg = Button(window, text='v', fg='green', command=lambda: bg_col_choose())
-btn_hist = Button(window, text='📊Гистограммы', fg='green', command=lambda: count_steps())
+btn_hist = Button(window, text='Время', fg='green', command=lambda: count_steps())
 btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
-btn_draw = Button(window, text='Нарисовать отрез.', fg='blue', command=lambda: draw_line(TAG))
-btn_draw_bunch = Button(window, text='Нарисовать пучок', fg='blue', command=lambda: draw_bunch(TAG))
+btn_draw_circle = Button(window, text='Нарисовать ○', fg='blue', command=lambda: draw_circle(TAG))
+btn_draw_ellipse = Button(window, text='Нарисовать ⬯', fg='blue', command=lambda: draw_ellipse(TAG))
+btn_draw_circle_bunch = Button(window, text='🎨○○', fg='blue', command=lambda: draw_circle_bunch(TAG))
+btn_draw_ellipse_bunch = Button(window, text='🎨⬯⬯', fg='blue', command=lambda: draw_ellipse_bunch(TAG))
 btn_colorimeter = Button(window, text='🔍', fg='blue', command=lambda: os.system('open /System/Applications/Utilities/Digital\ Color\ Meter.app'))
 btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 
 set0 = Radiobutton(text="➚", fg='black', variable=var, value=0)
-set1 = Radiobutton(text="➚", fg='black', variable=var, value=1)
+# set1 = Radiobutton(text="➚", fg='black', variable=var, value=1)
 
 set2 = Radiobutton(text="default", fg='black', variable=method, value=0)
-set3 = Radiobutton(text="ЦДА", fg='black', variable=method, value=1)
-set4 = Radiobutton(text="Брезенхейм (float)", fg='black', variable=method, value=2)
-set5 = Radiobutton(text="Брезенхейм (int)", fg='black', variable=method, value=3)
-set6 = Radiobutton(text="Брезенхейм (устр. ступен.)", fg='black', variable=method, value=4)
-set7 = Radiobutton(text="ВУ", fg='black', variable=method, value=5)
-set8 = Radiobutton(text="➚", fg='black', variable=var, value=2)
+set3 = Radiobutton(text="Каноническое ур-е", fg='black', variable=method, value=1)
+set4 = Radiobutton(text="Параметрическое ур-е", fg='black', variable=method, value=2)
+set5 = Radiobutton(text="Брезенхем", fg='black', variable=method, value=3)
+set6 = Radiobutton(text="Средней точки", fg='black', variable=method, value=4)
+# set7 = Radiobutton(text="ВУ", fg='black', variable=method, value=5)
+set1 = Radiobutton(text="➚", fg='black', variable=var, value=1)
 
-var.set(1)
+var.set(0)
 method.set(0)
 set0.place(x=157, y=42)
-set1.place(x=157, y=72)
+# set1.place(x=157, y=72)
 
 set2.place(x=220, y=42)
 set3.place(x=220, y=65)
 set4.place(x=220, y=88)
 set5.place(x=220, y=111)
 set6.place(x=220, y=134)
-set7.place(x=220, y=157)
+# set7.place(x=220, y=157)
 
-ents = '''ent1.place(x=70, y=40)
-ent2.place(x=70, y=70)
-ent3.place(x=525, y=40)
-ent4.place(x=570, y=40)
-ent5.place(x=525, y=70)
-ent6.place(x=570, y=70)
-ent8.place(x=115, y=70)
-ent9.place(x=115, y=40)'''
+set10 = ttk.Combobox(window, state='readonly', values=["Шаг радиуса", "Кол-во окружностей"], width=12, font='Arial 12')
+set10.current(0)
+set11 = ttk.Combobox(window, state='readonly', values=["X", "Y"], width=1, font='Arial 12')
+set11.current(0)
 
-lbls = '''label1.place(x=5, y=5)
-label2.place(x=435, y=5)
-label3.place(x=465, y=43)
+ents = '''ent1.place(x=72, y=40)
+ent2.place(x=72, y=70)
+ent3.place(x=540, y=40)
+ent4.place(x=579, y=40)
+ent5.place(x=540, y=66)
+ent6.place(x=579, y=66)
+ent8.place(x=72, y=103)
+ent9.place(x=115, y=40)
+ent10.place(x=115, y=103)
+ent11.place(x=540, y=92)
+ent12.place(x=540, y=118)
+ent13.place(x=579, y=118)
+ent14.place(x=540, y=144)
+ent16.place(x=540, y=170)'''
+
+lbls = '''label1.place(x=5, y=4)
+label2.place(x=428, y=4)
+label3.place(x=428, y=43)
 label4.place(x=5, y=43)
-label5.place(x=15, y=73)
-label6.place(x=22, y=103)
-label7.place(x=437, y=75)
-label11.place(x=220, y=5)
-label14.place(x=608, y=70)
-label18.place(x=80, y=143)
-label19.place(x=70, y=25)
-label20.place(x=115, y=25)
-label21.place(x=525, y=25)
-label22.place(x=570, y=25)'''
+label5.place(x=5, y=73)
+label6.place(x=5, y=133)
+label7.place(x=428, y=72)
+label11.place(x=215, y=2)
+label18.place(x=160, y=178)
+label19.place(x=72, y=25)
+label20.place(x=117, y=25)
+label21.place(x=538, y=25)
+label22.place(x=578, y=25)
+label24.place(x=4, y=105)
+label25.place(x=428, y=121)
+label26.place(x=428, y=149)
+label27.place(x=426, y=177)
+label28.place(x=526, y=149)'''
 
-btns = '''btn_col_line.place(x=135, y=103)
-btn_back.place(x=25, y=140)
-btn_hist.place(x=437, y=140)
-btn_colorimeter.place(x=375, y=175)
+btns = '''btn_col_line.place(x=135, y=133)
+btn_back.place(x=116, y=175)
+btn_hist.place(x=630, y=160)
+btn_colorimeter.place(x=345, y=148)
 btn_exit.place(x=630, y=840)
-btn_draw.place(x=220, y=175)
-btn_draw_bunch.place(x=437, y=105)
-btn_cl_all.place(x=25, y=170)'''
+btn_draw_circle.place(x=220, y=148)
+btn_draw_ellipse.place(x=220, y=175)
+btn_draw_circle_bunch.place(x=630, y=70)
+btn_draw_ellipse_bunch.place(x=630, y=130)
+btn_cl_all.place(x=15, y=175)'''
 
-rbtns = '''set0.place(x=157, y=42)
-set1.place(x=157, y=72)
-set2.place(x=220, y=32)
-set3.place(x=220, y=55)
-set4.place(x=220, y=78)
-set5.place(x=220, y=101)
-set6.place(x=220, y=124)
-set7.place(x=220, y=147)
-set8.place(x=610, y=42)'''
+rbtns = '''set0.place(x=157, y=42):1
+set2.place(x=220, y=32):1
+set3.place(x=220, y=55):1
+set4.place(x=220, y=78):1
+set5.place(x=220, y=101):1
+set6.place(x=220, y=124):1
+set1.place(x=619, y=42):1
+set10.place(x=430, y=93):1
+set11.place(x=498, y=148):1'''
 
 TASK = '''
 Реализовать различные алгоритмы построения одиночных отрезков. Отрезок задается координатой начала, координатой конца и цветом.
@@ -157,8 +179,8 @@ sz = 1
 center = [365, 510]
 dx = 0
 dy = 0
-color_coords = (87, 105), (87, 123), (137, 123), (137, 105)
-resized_coords = [[87, 105], [87, 123], [137, 123], [137, 105]]
+color_coords = (98, 135), (98, 153), (149, 153), (149, 135)
+resized_coords = [[89, 135], [89, 153], [139, 153], [139, 135]]
 color = [(255, 0, 0), '#ff0000']
 
 color_coords1 = (125, 844), (125, 862), (175, 862), (175, 844)
@@ -166,8 +188,10 @@ resized_coords1 = [[125, 844], [125, 862], [175, 862], [175, 844]]
 color1 = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
 
 c.create_polygon(color_coords, width=2, fill='black', tag='color')
-lines = []
-bunches = []
+circles = []
+ellipses = []
+circle_bunches = []
+ellipse_bunches = []
 old_dot = [0, 0]
 old_angl = 0
 cnt = -1
@@ -224,7 +248,7 @@ def count_steps():
         for alpha in range(0, 91, step):
             start = center
             stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
-            draw_line(0, start, stop, colorr, met, True, 0)
+            draw_ellipse(0, start, stop, colorr, met, True, 0)
             for i in range(cnt//2):
                 eval(f'hist{met}.append(alpha)')
             cnt = -1
@@ -255,54 +279,54 @@ def count_steps():
 
 
 def redraw_elems():
+    del_with_tag('start')
+    del_with_tag('stop')
     global TAG
     for i in range(TAG):
         del_with_tag(f't{i}')
-    for line in lines:
-        draw_line(line[0], line[1], line[2], line[3], line[4], False, 0)
-    for bunch in bunches:
-        draw_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
+    for circle in circles:
+        draw_circle(circle[0], circle[1], circle[2], circle[3], circle[4], False, 0)
+    for ellipse in ellipses:
+        draw_ellipse(ellipse[0], ellipse[1], ellipse[2], ellipse[3], ellipse[4], False, 0)
+    for bunch in circle_bunches:
+        draw_circle_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
+    for bunch in ellipse_bunches:
+        draw_ellipse_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
 
 
-def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False, st=1):
+def draw_circle(tag, center=None, radius=None, colorr=None, met=None, count_fl=False, st=1):
     global TAG
-    if not start:
+    if not center:
         try:
-            start, stop = [float(ent1.get()), float(ent9.get())], [float(ent2.get()), float(ent8.get())]
+            center, radius = [[float(ent1.get()), float(ent9.get())], float(ent2.get())]
             met = method.get()
             colorr = color
-            lines.append([tag, start, stop, color, met])
+            circles.append([tag, center, radius, color, met])
         except:
             box.showinfo('Error', 'Некорректные данные!')
             return
 
-    # if max(abs(int(start[0])), abs(int(stop[0]))) > 300 + dx/2 or max(abs(int(start[1])), abs(int(stop[1]))) > 300 + dy/2:
-    #     box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
-    #     lines.pop()
-    #     return
 
     redraw_flag = 0
-    max_stop_x = max(abs(int(start[0])), abs(int(stop[0])))
-    max_stop_y = max(abs(int(start[1])), abs(int(stop[1])))
+    max_stop_x = abs(int(center[0])) + radius
+    max_stop_y = abs(int(center[1])) + radius
     if max_stop_x > (300 + dx / 2) * sz or max_stop_y > (300 + dy / 2) * sz:
         scale(max_stop_x, max_stop_y)
         redraw_flag = 1
 
     if st:
-        story.append(f'del_with_tag("t{tag}");lines.pop()')
+        story.append(f'del_with_tag("t{tag}");circles.pop()')
 
     if met == 0:
-        standart_draw(start, stop, colorr[1], tag)
+        standart_circle_draw(center, radius, colorr[1], tag)
     elif met == 1:
-        dda_draw(start, stop, colorr[1], tag, count_fl)
+        canon_equation_circle_draw(center, radius, colorr[1], tag, count_fl)
     elif met == 2:
-        br_float_draw(start, stop, colorr[1], tag, count_fl)
+        param_equation_circle_draw(center, radius, colorr[1], tag, count_fl)
     elif met == 3:
-        br_int_draw(start, stop, colorr[1], tag, count_fl)
+        br_circle_draw(center, radius, colorr[1], tag, count_fl)
     elif met == 4:
-        br_smooth_draw(start, stop, colorr, tag, count_fl)
-    elif met == 5:
-        vu_draw(start, stop, colorr, tag, count_fl)
+        middle_dot_circle_draw(center, radius, colorr, tag, count_fl)
 
     if redraw_flag:
         redraw_elems()
@@ -311,54 +335,103 @@ def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False,
         TAG += 1
 
 
-def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, st=1):
+def draw_ellipse(tag, center=None, axcises=None, colorr=None, met=None, count_fl=False, st=1):
+    global TAG
+    if not center:
+        try:
+            center, axcises = [[float(ent1.get()), float(ent9.get())], [float(ent8.get()), float(ent10.get())]]
+            if axcises[0] < 0 or axcises[1] < 0:
+                raise
+            met = method.get()
+            colorr = color
+            ellipses.append([tag, center, axcises, color, met])
+        except:
+            box.showinfo('Error', 'Некорректные данные!')
+            return
+
+
+    redraw_flag = 0
+    max_stop_x = abs(int(center[0])) + axcises[0]
+    max_stop_y = abs(int(center[1])) + axcises[1]
+    if max_stop_x > (300 + dx / 2) * sz or max_stop_y > (300 + dy / 2) * sz:
+        scale(max_stop_x, max_stop_y)
+        redraw_flag = 1
+
+    if st:
+        story.append(f'del_with_tag("t{tag}");ellipses.pop()')
+
+    if met == 0:
+        standart_ellipse_draw(center, axcises, colorr[1], tag)
+    elif met == 1:
+        canon_equation_ellipse_draw(center, axcises, colorr[1], tag, count_fl)
+    elif met == 2:
+        param_equation_ellipse_draw(center, axcises, colorr[1], tag, count_fl)
+    elif met == 3:
+        br_ellipse_draw(center, axcises, colorr[1], tag, count_fl)
+    elif met == 4:
+        middle_dot_ellipse_draw(center, axcises, colorr, tag, count_fl)
+
+    if redraw_flag:
+        redraw_elems()
+
+    if st:
+        TAG += 1
+
+
+def draw_circle_bunch(tag, center=None, colorr=None, met=None, radiuses=None, step_or_count=None, st=1):
     global TAG
     if not center:
         try:
             center = [float(ent3.get()), float(ent4.get())]
-            radius = float(ent5.get())
-            step = int(ent6.get())
-            if step < 1 or step > 360:
+            radiuses = [float(ent5.get()), float(ent6.get())]
+            if radiuses[0] > radiuses[1]:
+                box.showinfo('Error', 'Начальный радиус больше конечного!')
+                return
+            if set10.get():
+                step_or_count = int(ent11.get())
+                step_or_count = [step_or_count, 'count']
+            else:
+                step_or_count = float(ent11.get())
+                step_or_count = [step_or_count, 'step']
+            if step_or_count[0] <= 0:
                 raise
+
         except:
             box.showinfo('Error', 'Некорректные данные!')
             return
 
         met = method.get()
         colorr = color
-        bunches.append([tag, center, colorr, met, radius, step])
+        circle_bunches.append([tag, center, colorr, met, radiuses, step_or_count])
 
-    max_stop_x = abs(center[0]) + radius
-    max_stop_y = abs(center[1]) + radius
-    print(max_stop_x, max_stop_y)
+    max_stop_x = abs(center[0]) + radiuses[1]
+    max_stop_y = abs(center[1]) + radiuses[1]
+    # print(max_stop_x, max_stop_y)
 
     redraw_flag = 0
     if max_stop_x > (300 + dx/2)*sz or max_stop_y > (300 + dy/2)*sz:
         scale(max_stop_x, max_stop_y)
         redraw_flag = 1
-        # box.showinfo('Error', f'Выход за границы:\nx: ({-(300 + dx//2)}...{300 + dx//2})\ny: ({-(300 + dy//2)}...{300 + dy//2})')
-        # bunches.pop()
-        # return
 
     if st:
-        story.append(f'del_with_tag("t{tag}");bunches.pop()')
+        story.append(f'del_with_tag("t{tag}");circle_bunches.pop()')
 
-    for alpha in range(0, 360, step):
-        start = center
-        stop = [start[0] + radius * sin(radians(alpha)), start[1] + radius * cos(radians(alpha))]
+    if step_or_count[1] == 'step':
+        step = step_or_count[0]
+    else:
+        step = (radiuses[1] - radiuses[0])/step_or_count[0]
 
+    for radius in np.arange(radiuses[0], radiuses[1], step):
         if met == 0:
-            standart_draw(start, stop, colorr[1], tag)
+            standart_circle_draw(center, radius, colorr[1], tag)
         elif met == 1:
-            dda_draw(start, stop, colorr[1], tag)
+            canon_equation_circle_draw(center, radius, colorr[1], tag)
         elif met == 2:
-            br_float_draw(start, stop, colorr[1], tag)
+            param_equation_circle_draw(center, radius, colorr[1], tag)
         elif met == 3:
-            br_int_draw(start, stop, colorr[1], tag)
+            br_circle_draw(center, radius, colorr[1], tag)
         elif met == 4:
-            br_smooth_draw(start, stop, colorr, tag)
-        elif met == 5:
-            vu_draw(start, stop, colorr, tag)
+            middle_dot_circle_draw(center, radius, colorr, tag)
 
     if redraw_flag:
         redraw_elems()
@@ -367,133 +440,124 @@ def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, 
         TAG += 1
 
 
-def standart_draw(start, stop, colorr, tag):
+def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, step_and_count=None, st=1):
+    global TAG
+    if not center:
+        try:
+            center = [float(ent3.get()), float(ent4.get())]
+            axcises = [float(ent12.get()), float(ent13.get())]
+            if axcises[0] < 0 or axcises[1] < 0:
+                raise
+
+            step_and_count = [float(ent14.get()), int(ent16.get())]
+            if set11.get():
+                step_and_count.append('x')
+            else:
+                step_and_count.append('y')
+            if step_and_count[0] <= 0 or step_and_count[1] <= 0:
+                raise
+
+        except:
+            box.showinfo('Error', 'Некорректные данные!')
+            return
+
+        met = method.get()
+        colorr = color
+        ellipse_bunches.append([tag, center, colorr, met, axcises, step_and_count])
+
+    max_stop_x = abs(center[0]) + axcises[0] + step_and_count[0]*step_and_count[1]
+    max_stop_y = abs(center[1]) + axcises[1] + step_and_count[0]*step_and_count[1]
+    # print(max_stop_x, max_stop_y)
+
+    redraw_flag = 0
+    if max_stop_x > (300 + dx/2)*sz or max_stop_y > (300 + dy/2)*sz:
+        scale(max_stop_x, max_stop_y)
+        redraw_flag = 1
+
+    if st:
+        story.append(f'del_with_tag("t{tag}");ellipse_bunches.pop()')
+
+    ######
+    change_index = 0
+    if step_and_count[2] == 'x':
+        change_index = 0
+    else:
+        change_index = 1
+
+    for i in range(step_and_count[1]):
+
+        if met == 0:
+            standart_ellipse_draw(center, axcises, colorr[1], tag)
+        elif met == 1:
+            canon_equation_ellipse_draw(center, axcises, colorr[1], tag)
+        elif met == 2:
+            param_equation_ellipse_draw(center, axcises, colorr[1], tag)
+        elif met == 3:
+            br_ellipse_draw(center, axcises, colorr[1], tag)
+        elif met == 4:
+            middle_dot_ellipse_draw(center, axcises, colorr, tag)
+        axcises[change_index] += step_and_count[0]
+
+    # if redraw_flag:
+    #     redraw_elems()
+
+    if st:
+        TAG += 1
+
+
+def standart_circle_draw(center, radius, colorr, tag):
     # global TAG
-    c.create_line([list(map(round, net_to_canv(start))), list(map(round, net_to_canv(stop)))], width=1, fill=colorr, tag=f't{tag}')
+    x1, y1 = list(map(round, net_to_canv(center[0]-radius, center[1]+radius)))
+    x2, y2 = list(map(round, net_to_canv(center[0] + radius, center[1] - radius)))
+
+    c.create_oval(x1, y1, x2, y2, width=1, outline=colorr, tag=f't{tag}')
 
 
-def dda_draw(start, stop, colorr, tag, count_fl=False):
-    x1, y1 = net_to_canv(start)
-    x2, y2 = net_to_canv(stop)
-    x = [0] * 1000
-    y = [0] * 1000
-    xstart = round(x1)
-    ystart = round(y1)
-    xend = round(x2)
-    yend = round(y2)
-    L = max(abs(xend - xstart), abs(yend - ystart))
-    dX = (x2 - x1) / L
-    dY = (y2 - y1) / L
-    i = 0
-    x[i] = x1
-    y[i] = y1
-    i += 1
-    while i < L:
-        x[i] = x[i - 1] + dX
-        y[i] = y[i - 1] + dY
-        i += 1
-    x[i] = x2
-    y[i] = y2
-
-    i = 0
-    while i <= L:
-        draw_dot(round(x[i]), round(y[i]), colorr, tag, count_fl)
-        i += 1
+def canon_equation_circle_draw(center, radius, colorr, tag, count_fl=False):
+    pass
 
 
-def br_float_draw(start, stop, colorr, tag, count_fl=False):
-    x0, y0 = list(map(round, start))
-    x1, y1 = list(map(round, stop))
-    dx = x1 - x0
-    dy = y1 - y0
-
-    if dx <= 0 and dy >= 0 and abs(dx) >= abs(dy) or dx <= 0 and dy <= 0 or dx >= 0 and dy <= 0 and abs(dy) > abs(dx):
-        x0, y0, x1, y1 = x1, y1, x0, y0
-
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    error = 0
-    deltaerr = (dy + 1) / (dx + 1)
-    y = y0
-    x = x0
-    diry = y1 - y0
-    if diry > 0:
-        diry = 1
-    if diry < 0:
-        diry = -1
-
-    dirx = x1 - x0
-    if dirx > 0:
-        dirx = 1
-    if dirx < 0:
-        dirx = -1
-
-    if deltaerr <= 1:
-        for x in range(x0, x1):
-            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
-            error += deltaerr
-            if error >= 1.0:
-                y += diry
-                error -= 1.0
-    else:
-        deltaerr = 1/deltaerr
-        for y in range(y0, y1):
-            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
-            error += deltaerr
-            if error >= 1.0:
-                x += dirx
-                error -= 1.0
+def param_equation_circle_draw(center, radius, colorr, tag, count_fl=False):
+    pass
 
 
-def br_int_draw(start, stop, colorr, tag, count_fl=False):
-    x0, y0 = list(map(round, start))
-    x1, y1 = list(map(round, stop))
-    dx = x1 - x0
-    dy = y1 - y0
+def br_circle_draw(center, radius, colorr, tag, count_fl=False):
+    pass
 
-    if dx <= 0 and dy >= 0 and abs(dx) >= abs(dy) or dx <= 0 and dy <= 0 or dx >= 0 and dy <= 0 and abs(dy) > abs(dx):
-        x0, y0, x1, y1 = x1, y1, x0, y0
 
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    error = 0
-    deltaerr = (dy + 1)
-    deltaerr1 = (dx + 1)
-    y = y0
-    x = x0
-    diry = y1 - y0
-    if diry > 0:
-        diry = 1
-    if diry < 0:
-        diry = -1
+def middle_dot_circle_draw(center, radius, colorr, tag, count_fl=False):
+    pass
 
-    dirx = x1 - x0
-    if dirx > 0:
-        dirx = 1
-    if dirx < 0:
-        dirx = -1
 
-    if dx >= dy:
-        for x in range(x0, x1):
-            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
-            error += deltaerr
-            if error >= dx + 1:
-                y += diry
-                error -= (dx + 1)
-    else:
-        for y in range(y0, y1):
-            draw_dot(net_to_canv(x, y), None, colorr, tag, count_fl)
-            error += deltaerr1
-            if error >= dy + 1:
-                x += dirx
-                error -= (dy + 1)
+def standart_ellipse_draw(center, axcises, colorr, tag):
+    # global TAG
+    x1, y1 = list(map(round, net_to_canv(center[0]-axcises[0], center[1]+axcises[1])))
+    x2, y2 = list(map(round, net_to_canv(center[0] + axcises[0], center[1] - axcises[1])))
+
+    c.create_oval(x1, y1, x2, y2, width=1, outline=colorr, tag=f't{tag}')
+
+
+def canon_equation_ellipse_draw(center, radius, colorr, tag, count_fl=False):
+    pass
+
+
+def param_equation_ellipse_draw(center, radius, colorr, tag, count_fl=False):
+    pass
+
+
+def br_ellipse_draw(center, radius, colorr, tag, count_fl=False):
+    pass
+
+
+def middle_dot_ellipse_draw(center, radius, colorr, tag, count_fl=False):
+    pass
 
 
 def change_brightness(col, k):
     col = col[0]
     col = list(col)
     for i in range(3):
-        col[i] += (255-col[i])*(1-k)
+        col[i] += (255 - col[i]) * (1 - k)
 
     return rgb_to_hex(col)
 
@@ -507,162 +571,8 @@ def sign(diff):
         return 1
 
 
-def br_smooth_draw(start, stop, colorr, tag, count_fl=False):
-    x1, y1 = list(map(round, list(map(float, start))))
-    x2, y2 = list(map(round, list(map(float, stop))))
-
-    if (x2 - x1 == 0) and (y2 - y1 == 0):
-        draw_dot(net_to_canv(x1, y1), None, colorr, tag, count_fl)
-
-    x = x1
-    y = y1
-
-    dx = abs(x2 - x1)
-    dy = abs(y2 - y1)
-
-    s1 = sign(x2 - x1)
-    s2 = sign(y2 - y1)
-
-    swaped = 0
-    if dy > dx:
-        tmp = dx
-        dx = dy
-        dy = tmp
-        swaped = 1
-
-    intens = 1
-
-    m = dy / dx
-    e = intens / 2
-
-    m *= intens
-    w = intens - m
-
-    draw_dot(net_to_canv(x, y), None, change_brightness(colorr, e), tag, count_fl)
-
-    i = 1
-
-    while i <= dx:
-        if e < w:
-            if swaped:
-                y += s2
-            else:
-                x += s1
-            e += m
-        else:
-            x += s1
-            y += s2
-
-            e -= w
-
-        draw_dot(net_to_canv(x, y), None, change_brightness(colorr, e), tag, count_fl)
-
-        i += 1
-
-
-
 def fpart(x):
     return abs(x - int(x))
-
-
-def vu_draw(start, stop, colorr, tag, count_fl=False):
-    x1, y1 = list(map(round, list(map(float, start))))
-    # y1 = start[1]
-    x2, y2 = list(map(round, list(map(float, stop))))
-    # y2 = stop[1]
-
-    if (x2 - x1 == 0) and (y2 - y1 == 0):
-        # draw_dot(net_to_canv(x1, y1), None, change_brightness(colorr, 0.5), tag, count_fl)
-        # if not count_fl:
-        #     draw_dot(net_to_canv(x1, y1+1), None, change_brightness(colorr, 0.5), tag)
-        draw_dot(net_to_canv(x1, y1), None, colorr, tag, count_fl)
-
-    dx = x2 - x1
-    dy = y2 - y1
-
-    m = 1
-    step = 1
-    intens = 1
-
-    steps = 0
-
-    if fabs(dy) > fabs(dx):
-        if dy != 0:
-            m = dx / dy
-        m1 = m
-
-        if y1 > y2:
-            m1 *= -1
-            step *= -1
-
-        y_end = round(y2) - 1 if (dy < dx) else (round(y2) + 1)
-
-        for y_cur in range(round(y1), y_end, step):
-            d1 = x1 - floor(x1)
-            d2 = 1 - d1
-
-            if not d1 or not d2:
-                d1 = d2 = 0.5
-
-            draw_dot(net_to_canv(int(x1) + 1, y_cur), None, change_brightness(colorr, fabs(d1) * intens), tag, count_fl)
-            if not count_fl:
-                draw_dot(net_to_canv(int(x1), y_cur), None, change_brightness(colorr, fabs(d2) * intens), tag)
-
-            # dot1 = [int(x1) + 1, y_cur, choose_color(colorr, round(fabs(d2) * intens))]
-            #
-            # dot2 = [int(x1), y_cur, choose_color(colorr, round(fabs(d1) * intens))]
-
-            # if count_fl and y_cur < y2:
-            #     if int(x1) != int(x1 + m):
-            #         steps += 1
-
-            # dots.append(dot1)
-            # dots.append(dot2)
-
-            x1 += m1
-
-    else:
-        if dx != 0:
-            m = dy / dx
-
-        m1 = m
-
-        x_end = 0
-        if x1 > x2:
-            step *= -1
-            m1 *= -1
-            if dy == dx:
-                x_end -= 2
-
-        x_end += round(x2) - 1 if (dy > dx) else (round(x2) + 1)
-
-        for x_cur in range(round(x1), x_end, step):
-            d1 = y1 - floor(y1)
-            d2 = 1 - d1
-
-            if not d1 or not d2:
-                d1 = d2 = 0.5
-
-            draw_dot(net_to_canv(x_cur, int(y1) + 1), None, change_brightness(colorr, fabs(d1) * intens), tag, count_fl)
-            if not count_fl:
-                draw_dot(net_to_canv(x_cur, int(y1)), None, change_brightness(colorr, fabs(d2) * intens), tag)
-
-            # dot1 = [x_cur, int(y1) + 1, choose_color(colorr, round(fabs(d2) * intens))]
-            # dot2 = [x_cur, int(y1), choose_color(colorr, round(fabs(d1) * intens))]
-
-            # if count_fl and x_cur < x2:
-            #     if int(y1) != int(y1 + m):
-            #         steps += 1
-
-            # dots.append(dot1)
-            # dots.append(dot2)
-
-            y1 += m1
-
-    # if count_fl:
-    #     return steps
-    # else:
-    #     return dots
 
 
 def line_col_choose():
@@ -753,6 +663,7 @@ def clean_all():
     ent6.delete(0, END)
     ent8.delete(0, END)
     ent9.delete(0, END)
+    ent10.delete(0, END)
 
     objs = c.find_withtag('rot')
     objs += c.find_withtag('sz')
@@ -789,6 +700,10 @@ def click(event):
     if var.get() == 1:
         rotate_point = canv_to_net(event.x, event.y)
         reprint_dot(rotate_point)
+        ent3.delete(0, END)
+        ent4.delete(0, END)
+        ent3.insert(0, f'{canv_to_net(event.x, event.y)[0]:g}')
+        ent4.insert(0, f'{canv_to_net(event.x, event.y)[1]:g}')
     elif var.get() == 0:
         resize_point = canv_to_net(event.x, event.y)
         reprint_dot(resize_point)
@@ -812,9 +727,7 @@ def reprint_dot(coords, fl=0):
     x2, y2 = (buf[0] + 2), (buf[1] + 2)
 
     if (fl == 1 or not var.get()) and fl != 2:
-        dotts = c.find_withtag('start')
-        for dot in dotts:
-            c.delete(dot)
+        del_with_tag('start')
         ent1.delete(0, END)
         ent9.delete(0, END)
         ent1.insert(END, f'{coords[0]:g}')
@@ -822,13 +735,11 @@ def reprint_dot(coords, fl=0):
         c.create_oval(x1, y1, x2, y2, outline='blue', fill='blue', tag='start', activeoutline='lightgreen',
                       activefill='lightgreen')
     elif fl == 2 or var.get():
-        dotts = c.find_withtag('stop')
-        for dot in dotts:
-            c.delete(dot)
+        del_with_tag('stop')
         ent2.delete(0, END)
-        ent8.delete(0, END)
+        # ent8.delete(0, END)
         ent2.insert(END, f'{coords[0]:g}')
-        ent8.insert(END, f'{coords[1]:g}')
+        # ent8.insert(END, f'{coords[1]:g}')
         c.create_oval(x1, y1, x2, y2, outline='red', fill='red', tag='stop', activeoutline='lightgreen',
                       activefill='lightgreen')
 
@@ -863,10 +774,10 @@ def scale(x, y):
         sz *= 2
 
     if sz != prev_sz:
-        redraw()
+        redraw_net_coords()
 
 
-def redraw():
+def redraw_net_coords():
     global sz
 
     coords = c.find_withtag('coord')
@@ -934,6 +845,9 @@ def coordinate_field_creation():
     c.create_line(440 + dx / 1.8, 5, 440 + dx / 1.8, 180, fill='black',
                   width=1, dash=(5, 9), tag='net')
 
+    c.create_line(5, 27, 700 + dx, 27, fill='grey',
+                  width=1, dash=(5, 9), tag='net')
+
     for i in range(round(center[0] + 50), 665 + dx, 50):
         c.create_line(i, 503 + dy / 2, i, 520 + dy / 2, fill='grey', width=2, tag='net')
         c.create_line(i, 210, i, 810 + dy, fill='grey', width=1, dash=(1, 9), tag='net')
@@ -952,15 +866,15 @@ def coordinate_field_creation():
 
     c.create_text(688 + dx, 493 + dy / 2, text='X', font='Verdana 20', fill='green', tag='net')
     c.create_text(380 + dx / 2, 195, text='Y', font='Verdana 20', fill='green', tag='net')
-    redraw()
+    redraw_net_coords()
 
 
 def start_state():
-    global story, rot_coords, res_coords, lines, bunches, TAG
+    global story, rot_coords, res_coords, circles, circle_bunches, TAG
     scale(290, 290)
     story = []
-    lines = []
-    bunches = []
+    circles = []
+    circle_bunches = []
     clean_all()
     for i in range(TAG):
         del_with_tag(f't{i}')
@@ -971,10 +885,17 @@ def start_state():
     ent2.insert(0, 200)
     ent3.insert(0, 150)
     ent4.insert(0, -150)
-    ent5.insert(0, 100)
-    ent6.insert(0, 5)
-    ent8.insert(0, 200)
+    ent5.insert(0, 10)
+    ent6.insert(0, 100)
+    ent8.insert(0, 100)
     ent9.insert(0, 0)
+    ent10.insert(0, 200)
+    ent11.insert(0, 10)
+    ent12.insert(0, 10)
+    ent13.insert(0, 15)
+    ent14.insert(0, 10)
+    # ent15.insert(0, 0)
+    ent16.insert(0, 10)
 
 
 old_dx, old_dy = dx, dy
@@ -994,6 +915,7 @@ def config(event):
         lbl_places = [0] * max_elems
         btn_places = [0] * max_elems
         radiobtn_places = [0] * max_elems
+
         for ent in ents.split('\n'):
             ind = int(ent.split('ent')[1].split('.')[0])
             ent_places[ind] = [int(ent.split('x=')[1].split(',')[0]), int(ent.split('y=')[1].split(')')[0])]
@@ -1009,18 +931,19 @@ def config(event):
             k += 1
 
         for rbtn in rbtns.split('\n'):
+            rbtn, koef = rbtn.split(':')
             ind = int(rbtn.split('set')[1].split('.')[0])
-            radiobtn_places[ind] = [int(rbtn.split('x=')[1].split(',')[0]), int(rbtn.split('y=')[1].split(')')[0])]
+            radiobtn_places[ind] = [int(rbtn.split('x=')[1].split(',')[0]), int(rbtn.split('y=')[1].split(')')[0]), float(koef)]
 
         for i in range(max_elems):
-            if ent_places[i]:
-                eval(f'ent{i}.place(x={ent_places[i][0]} * kx, y={ent_places[i][1]} * 1)')
             if lbl_places[i]:
                 eval(f'label{i}.place(x={lbl_places[i][0]} * kx, y={lbl_places[i][1]} * 1)')
+            if ent_places[i]:
+                eval(f'ent{i}.place(x={ent_places[i][0]} * kx, y={ent_places[i][1]} * 1)')
             if btn_places[i]:
                 eval(f'{btn_places[i][0]}.place(x={btn_places[i][1]} * kx, y={btn_places[i][2]} * 1)')
             if radiobtn_places[i]:
-                eval(f'set{i}.place(x={radiobtn_places[i][0]} * kx, y={radiobtn_places[i][1]} * 1)')
+                eval(f'set{i}.place(x={radiobtn_places[i][0]} * kx * {radiobtn_places[i][2]}, y={radiobtn_places[i][1]} * 1)')
         btn_exit.place(x=window.winfo_width() - 70, y=window.winfo_height() - 60)
         btn_col_bg.place(x=170, y=window.winfo_height() - 60)
 
@@ -1031,7 +954,7 @@ def config(event):
         resized_coords1 = []
         for i in range(len(color_coords)):
             resized_coords.append([color_coords[i][0], color_coords[i][1]])
-            resized_coords[i][0] *= kx
+            resized_coords[i][0] *= kx/1.1
             resized_coords1.append([color_coords1[i][0], color_coords1[i][1]])
             resized_coords1[i][1] *= ky
         c.create_polygon(resized_coords, width=2, fill=color[1], tag='color')

@@ -166,8 +166,8 @@ resized_coords1 = [[125, 844], [125, 862], [175, 862], [175, 844]]
 color1 = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
 
 c.create_polygon(color_coords, width=2, fill='black', tag='color')
-lines = []
-bunches = []
+circles = []
+circle_bunches = []
 old_dot = [0, 0]
 old_angl = 0
 cnt = -1
@@ -258,9 +258,9 @@ def redraw_elems():
     global TAG
     for i in range(TAG):
         del_with_tag(f't{i}')
-    for line in lines:
+    for line in circles:
         draw_line(line[0], line[1], line[2], line[3], line[4], False, 0)
-    for bunch in bunches:
+    for bunch in circle_bunches:
         draw_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
 
 
@@ -271,7 +271,7 @@ def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False,
             start, stop = [float(ent1.get()), float(ent9.get())], [float(ent2.get()), float(ent8.get())]
             met = method.get()
             colorr = color
-            lines.append([tag, start, stop, color, met])
+            circles.append([tag, start, stop, color, met])
         except:
             box.showinfo('Error', 'Некорректные данные!')
             return
@@ -326,7 +326,7 @@ def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, 
 
         met = method.get()
         colorr = color
-        bunches.append([tag, center, colorr, met, radius, step])
+        circle_bunches.append([tag, center, colorr, met, radius, step])
 
     max_stop_x = abs(center[0]) + radius
     max_stop_y = abs(center[1]) + radius
@@ -956,7 +956,7 @@ def coordinate_field_creation():
 
 
 def start_state():
-    global story, rot_coords, res_coords, lines, bunches, TAG
+    global story, rot_coords, res_coords, circles, circle_bunches, TAG
     scale(290, 290)
     story = []
     lines = []
