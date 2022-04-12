@@ -100,6 +100,7 @@ set5.place(x=220, y=111)
 set6.place(x=220, y=134)
 # set7.place(x=220, y=157)
 
+
 set10 = ttk.Combobox(window, state='readonly', values=["Шаг радиуса", "Кол-во окружностей"], width=12, font='Arial 12')
 set10.current(0)
 set11 = ttk.Combobox(window, state='readonly', values=["X", "Y"], width=1, font='Arial 12')
@@ -230,34 +231,43 @@ def measure_time():
     middle_dot_ellipse'''
 
 
+    n = 100
     for radius in radiuses:
         for task in tasks1.split('\n'):
-            start = time()
-            eval(f'{task}_draw([0, 0], {radius}, color[1], TAG)')
-            stop = time()
-            eval(f'{task}_times.append(stop-start)')
-            if task == 'standart_circle':
-                story.append(f'del_with_tag("t{TAG}")')
-                back()
-                TAG += 1
+            summ1 = 0
+            for i in range(n):
+                start = time()
+                eval(f'{task}_draw([0, 0], {radius}, color[1], TAG)')
+                stop = time()
+                summ1 += stop-start
+                # eval(f'{task}_times.append(stop-start)')
+                if task == 'standart_circle':
+                    story.append(f'del_with_tag("t{TAG}")')
+                    back()
+                    TAG += 1
+            eval(f'{task}_times.append({summ1/n})')
 
 
         for task in tasks2.split('\n'):
-            start = time()
-            eval(f'{task}_draw([0, 0], {[radius, 0.5*radius]}, color[1], TAG)')
-            stop = time()
-            eval(f'{task}_times.append(stop-start)')
-            if task == 'standart_ellipse':
-                story.append(f'del_with_tag("t{TAG}")')
-                back()
-                TAG += 1
+            summ1 = 0
+            for i in range(n):
+                start = time()
+                eval(f'{task}_draw([0, 0], {[radius, 0.5*radius]}, color[1], TAG)')
+                stop = time()
+                summ1 += stop - start
+                # eval(f'{task}_times.append(stop-start)')
+                if task == 'standart_ellipse':
+                    story.append(f'del_with_tag("t{TAG}")')
+                    back()
+                    TAG += 1
+            eval(f'{task}_times.append({summ1 / n})')
 
     plt.figure(figsize=(15, 6))
 
     plt.subplot(1, 2, 1)
     plt.title("Замеры для окружностей: ")
     plt.plot(radiuses, standart_circle_times, label="Библиотечный\nспособ")
-    plt.plot(radiuses, canon_equation_circle_times, label="Каноническое\nуравнеие")
+    plt.plot(radiuses, canon_equation_circle_times, label="Каноническое\nуравнение")
     plt.plot(radiuses, param_equation_circle_times, label="Параметрическое\nуравнение")
     plt.plot(radiuses, br_circle_times, label="Брезенхем")
     plt.plot(radiuses, middle_dot_circle_times, label="Алгоритм\nсредней точки")
