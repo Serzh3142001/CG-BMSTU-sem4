@@ -183,11 +183,11 @@ dx = 0
 dy = 0
 color_coords = (98, 135), (98, 153), (149, 153), (149, 135)
 resized_coords = [[89, 135], [89, 153], [139, 153], [139, 135]]
-color = [(255, 0, 0), '#ff0000']
+colorDraw = [(255, 0, 0), '#ff0000']
 
 color_coords1 = (125, 844), (125, 862), (175, 862), (175, 844)
 resized_coords1 = [[125, 844], [125, 862], [175, 862], [175, 844]]
-color1 = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
+colorBG = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
 
 c.create_polygon(color_coords, width=2, fill='black', tag='color')
 circles = []
@@ -358,8 +358,8 @@ def draw_circle(tag, center=None, radius=None, colorr=None, met=None, count_fl=F
         try:
             center, radius = [[float(ent1.get()), float(ent9.get())], float(ent2.get())]
             met = method.get()
-            colorr = color
-            circles.append([tag, center, radius, color, met])
+            colorr = colorDraw
+            circles.append([tag, center, radius, colorDraw, met])
         except:
             box.showinfo('Error', 'Некорректные данные!')
             return
@@ -403,8 +403,8 @@ def draw_ellipse(tag, center=None, axcises=None, colorr=None, met=None, count_fl
             if axcises[0] < 0 or axcises[1] < 0:
                 raise
             met = method.get()
-            colorr = color
-            ellipses.append([tag, center, axcises, color, met])
+            colorr = colorDraw
+            ellipses.append([tag, center, axcises, colorDraw, met])
         except:
             box.showinfo('Error', 'Некорректные данные!')
             return
@@ -465,7 +465,7 @@ def draw_circle_bunch(tag, center=None, colorr=None, met=None, radiuses=None, st
             return
 
         met = method.get()
-        colorr = color
+        colorr = colorDraw
         circle_bunches.append([tag, center, colorr, met, radiuses, step_or_count])
 
     max_stop_x = abs(center[0]) + radiuses[1]
@@ -531,7 +531,7 @@ def draw_ellipse_bunch(tag, center=None, colorr=None, met=None, axcises=None, st
             return
 
         met = method.get()
-        colorr = color
+        colorr = colorDraw
         ellipse_bunches.append([tag, center, colorr, met, axcises, step_and_count])
 
     change_index1 = []
@@ -845,7 +845,7 @@ def middle_dot_ellipse_draw(center, axcises, colorr, tag, count_fl=False):
 
 
 def line_col_choose():
-    global color
+    global colorDraw
     del_with_tag('color')
     color = colorchooser.askcolor()
 
@@ -856,7 +856,7 @@ def line_col_choose():
 
 
 def bg_col_choose():
-    global color1
+    global colorBG
     del_with_tag('color1')
     color1 = colorchooser.askcolor()
     coordinate_field_creation()
@@ -1061,7 +1061,7 @@ def buttons_creation():
 
 
 def coordinate_field_creation():
-    global center, color1
+    global center, colorBG
     del_with_tag('bg')
 
     if not color1[1]:
@@ -1211,8 +1211,8 @@ def config(event):
             resized_coords[i][0] *= kx/1.1
             resized_coords1.append([color_coords1[i][0], color_coords1[i][1]])
             resized_coords1[i][1] *= ky
-        c.create_polygon(resized_coords, width=2, fill=color[1], tag='color')
-        c.create_polygon(resized_coords1, width=2, fill=color1[1], tag='color1')
+        c.create_polygon(resized_coords, width=2, fill=colorDraw[1], tag='color')
+        c.create_polygon(resized_coords1, width=2, fill=colorBG[1], tag='color1')
         label23.place(x=20, y=window.winfo_height() - 60)
 
         old_dx, old_dy = dx, dy

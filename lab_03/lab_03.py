@@ -159,11 +159,11 @@ dx = 0
 dy = 0
 color_coords = (87, 105), (87, 123), (137, 123), (137, 105)
 resized_coords = [[87, 105], [87, 123], [137, 123], [137, 105]]
-color = [(255, 0, 0), '#ff0000']
+colorDraw = [(255, 0, 0), '#ff0000']
 
 color_coords1 = (125, 844), (125, 862), (175, 862), (175, 844)
 resized_coords1 = [[125, 844], [125, 862], [175, 862], [175, 844]]
-color1 = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
+colorBG = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
 
 c.create_polygon(color_coords, width=2, fill='black', tag='color')
 circles = []
@@ -219,7 +219,7 @@ def count_steps():
         box.showinfo('Error', 'Некорректные координаты!')
         return
 
-    colorr = color
+    colorr = colorDraw
     for met in range(1, 6):
         for alpha in range(0, 91, step):
             start = center
@@ -270,8 +270,8 @@ def draw_line(tag, start=None, stop=None, colorr=None, met=None, count_fl=False,
         try:
             start, stop = [float(ent1.get()), float(ent9.get())], [float(ent2.get()), float(ent8.get())]
             met = method.get()
-            colorr = color
-            circles.append([tag, start, stop, color, met])
+            colorr = colorDraw
+            circles.append([tag, start, stop, colorDraw, met])
         except:
             box.showinfo('Error', 'Некорректные данные!')
             return
@@ -325,7 +325,7 @@ def draw_bunch(tag, center=None, colorr=None, met=None, radius=None, step=None, 
             return
 
         met = method.get()
-        colorr = color
+        colorr = colorDraw
         circle_bunches.append([tag, center, colorr, met, radius, step])
 
     max_stop_x = abs(center[0]) + radius
@@ -666,7 +666,7 @@ def vu_draw(start, stop, colorr, tag, count_fl=False):
 
 
 def line_col_choose():
-    global color
+    global colorDraw
     del_with_tag('color')
     color = colorchooser.askcolor()
 
@@ -677,7 +677,7 @@ def line_col_choose():
 
 
 def bg_col_choose():
-    global color1
+    global colorBG
     del_with_tag('color1')
     color1 = colorchooser.askcolor()
     coordinate_field_creation()
@@ -900,7 +900,7 @@ def buttons_creation():
 
 
 def coordinate_field_creation():
-    global center, color1
+    global center, colorBG
     del_with_tag('bg')
 
     if not color1[1]:
@@ -1034,8 +1034,8 @@ def config(event):
             resized_coords[i][0] *= kx
             resized_coords1.append([color_coords1[i][0], color_coords1[i][1]])
             resized_coords1[i][1] *= ky
-        c.create_polygon(resized_coords, width=2, fill=color[1], tag='color')
-        c.create_polygon(resized_coords1, width=2, fill=color1[1], tag='color1')
+        c.create_polygon(resized_coords, width=2, fill=colorDraw[1], tag='color')
+        c.create_polygon(resized_coords1, width=2, fill=colorBG[1], tag='color1')
         label23.place(x=20, y=window.winfo_height() - 60)
 
         old_dx, old_dy = dx, dy
