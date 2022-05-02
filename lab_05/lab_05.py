@@ -13,13 +13,13 @@ os.system(f'python3 ../../../gen_navigation.py {sys.argv[0][-5:-3]}')
 
 window = Tk()
 
-# var = IntVar()
+var = IntVar()
 # method = IntVar()
 story = []
 win_size = [700, 900]
 c = Canvas(window, width=3840, height=2160, bg='white')
 
-# ent1 = Entry(width=3)
+ent1 = Entry(width=7)
 # ent2 = Entry(width=3)
 # ent3 = Entry(width=3)
 # ent4 = Entry(width=3)
@@ -68,18 +68,18 @@ label23 = Label(text='Цвет фона:', font='Arial 15')
 
 btn_col_line = Button(window, text='v', fg='green', command=lambda: line_col_choose())
 btn_col_bg = Button(window, text='v', fg='green', command=lambda: bg_col_choose())
-btn_hist = Button(window, text='Время', fg='green', command=lambda: fillWithDelay())
+# btn_hist = Button(window, text='Время', fg='green', command=lambda: fillWithDelay())
 btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
-btn_draw_circle = Button(window, text='Закрасить', fg='red', command=lambda: fill())
+btn_draw_circle = Button(window, text='Закрасить', fg='green', command=lambda: fill())
 btn_draw_ellipse = Button(window, text='Замкнуть', fg='blue', command=lambda: close())
-# btn_draw_circle_bunch = Button(window, text='🎨○○', fg='blue', command=lambda: draw_circle_bunch(TAG))
+btn_draw_circle_bunch = Button(window, text='Вырезать', fg='red', command=lambda: unFill())
 # btn_draw_ellipse_bunch = Button(window, text='🎨⬯⬯', fg='blue', command=lambda: draw_ellipse_bunch(TAG))
 btn_colorimeter = Button(window, text='🔍', fg='blue', command=lambda: os.system('open /System/Applications/Utilities/Digital\ Color\ Meter.app'))
 btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 
-# set0 = Radiobutton(text="➚", fg='black', variable=var, value=0)
-# set1 = Radiobutton(text="➚", fg='black', variable=var, value=1)
+set0 = Radiobutton(text="Мгновенно", fg='black', variable=var, value=0)
+set1 = Radiobutton(text="С задержкой", fg='black', variable=var, value=1)
 
 # set2 = Radiobutton(text="default", fg='black', variable=method, value=0)
 # set3 = Radiobutton(text="Каноническое ур-е", fg='black', variable=method, value=1)
@@ -89,7 +89,7 @@ btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 # set7 = Radiobutton(text="ВУ", fg='black', variable=method, value=5)
 # set1 = Radiobutton(text="➚", fg='black', variable=var, value=1)
 
-# var.set(0)
+var.set(0)
 # method.set(0)
 # set0.place(x=157, y=42)
 # set1.place(x=157, y=72)
@@ -107,21 +107,22 @@ btn_exit = Button(window, text=' выход ', fg='red', command=exit)
 # set11 = ttk.Combobox(window, state='readonly', values=["X", "Y"], width=1, font='Arial 12')
 # set11.current(0)
 
-ents = ''''''
+ents = '''ent1.place(x=250, y=30)'''
 
 lbls = '''label6.place(x=5, y=133)
 label18.place(x=160, y=178)'''
 
 btns = '''btn_col_line.place(x=135, y=133)
 btn_back.place(x=116, y=175)
-btn_hist.place(x=630, y=160)
-btn_colorimeter.place(x=345, y=148)
+btn_colorimeter.place(x=100, y=80)
 btn_exit.place(x=630, y=840)
-btn_draw_circle.place(x=220, y=148)
-btn_draw_ellipse.place(x=220, y=175)
+btn_draw_circle.place(x=15, y=20)
+btn_draw_ellipse.place(x=15, y=80)
+btn_draw_circle_bunch.place(x=15, y=50)
 btn_cl_all.place(x=15, y=175)'''
 
-rbtns = ''''''
+rbtns = '''set0.place(x=100, y=20):1
+set1.place(x=100, y=50):1'''
 
 TASK = '''
 Реализовать различные алгоритмы построения одиночных отрезков. Отрезок задается координатой начала, координатой конца и цветом.
@@ -164,104 +165,16 @@ TIME_FLAG = 0
 DOTS = [[]]
 PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
 PIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
+bufPIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
 DROWEDSTARTS = []
 DICT = {}
 
-
-# def measure_time():
-#     global TAG, TIME_FLAG
-#     TIME_FLAG = 1
-#     radiuses = [r for r in range(100, 10002, 1000)]
-#
-#     standart_circle_times = []
-#     canon_equation_circle_times = []
-#     param_equation_circle_times = []
-#     br_circle_times = []
-#     middle_dot_circle_times = []
-#
-#     standart_ellipse_times = []
-#     canon_equation_ellipse_times = []
-#     param_equation_ellipse_times = []
-#     br_ellipse_times = []
-#     middle_dot_ellipse_times = []
-#
-#     tasks1 = '''standart_circle
-#     canon_equation_circle
-#     param_equation_circle
-#     br_circle
-#     middle_dot_circle'''
-#
-#     tasks2 = '''standart_ellipse
-#     canon_equation_ellipse
-#     param_equation_ellipse
-#     br_ellipse
-#     middle_dot_ellipse'''
-#
-#
-#     n = 100
-#     for radius in radiuses:
-#         for task in tasks1.split('\n'):
-#             summ1 = 0
-#             for i in range(n):
-#                 start = time()
-#                 eval(f'{task}_draw([0, 0], {radius}, color[1], TAG)')
-#                 stop = time()
-#                 summ1 += stop-start
-#                 # eval(f'{task}_times.append(stop-start)')
-#                 if task == 'standart_circle':
-#                     story.append(f'del_with_tag("t{TAG}")')
-#                     back()
-#                     TAG += 1
-#             eval(f'{task}_times.append({summ1/n})')
-#
-#
-#         for task in tasks2.split('\n'):
-#             summ1 = 0
-#             for i in range(n):
-#                 start = time()
-#                 eval(f'{task}_draw([0, 0], {[radius, 0.5*radius]}, color[1], TAG)')
-#                 stop = time()
-#                 summ1 += stop - start
-#                 # eval(f'{task}_times.append(stop-start)')
-#                 if task == 'standart_ellipse':
-#                     story.append(f'del_with_tag("t{TAG}")')
-#                     back()
-#                     TAG += 1
-#             eval(f'{task}_times.append({summ1 / n})')
-#
-#     plt.figure(figsize=(15, 6))
-#
-#     plt.subplot(1, 2, 1)
-#     plt.title("Замеры для окружностей: ")
-#     plt.plot(radiuses, standart_circle_times, label="Библиотечный\nспособ")
-#     plt.plot(radiuses, canon_equation_circle_times, label="Каноническое\nуравнение")
-#     plt.plot(radiuses, param_equation_circle_times, label="Параметрическое\nуравнение")
-#     plt.plot(radiuses, br_circle_times, label="Брезенхем")
-#     plt.plot(radiuses, middle_dot_circle_times, label="Алгоритм\nсредней точки")
-#     plt.legend()
-#     plt.ylabel("Время")
-#     plt.xlabel("Величина радиуса")
-#
-#     plt.subplot(1, 2, 2)
-#     plt.title("Замеры для эллипсов: ")
-#     plt.plot(radiuses, standart_ellipse_times, label="Библиотечный\nспособ")
-#     plt.plot(radiuses, canon_equation_ellipse_times, label="Каноническое\nуравнеие")
-#     plt.plot(radiuses, param_equation_ellipse_times, label="Параметрическое\nуравнение")
-#     plt.plot(radiuses, br_ellipse_times, label="Брезенхем")
-#     plt.plot(radiuses, middle_dot_ellipse_times, label="Алгоритм\nсредней точки")
-#     plt.legend()
-#     plt.ylabel("Время")
-#     plt.xlabel("Величина радиуса")
-#
-#     plt.show()
-#
-#     TIME_FLAG = 0
 
 OLDTAG = 0
 OLDY = 0
 SAVEFLAG = 1
 
-def draw_dot(x, y, colorr, tag, count_fl=False):
+def draw_dot(x, y, colorr, tag, lineFl=False):
     global OLDTAG, OLDY, SAVEFLAG, PIXELOBJS
     # OLDTAG = tag
     if TIME_FLAG:
@@ -272,16 +185,15 @@ def draw_dot(x, y, colorr, tag, count_fl=False):
         y = x[1]
         x = x[0]
 
-    if colorr == colorBG[1]:
+    if colorr == colorBG[1] and len(PIXELOBJS[x][y]):
         c.delete(PIXELOBJS[x][y][-1])
         PIXELOBJS[x][y].pop()
     else:
         d = 1
-        #append...
-        obj = c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=[f"t{tag}", x*y])
-        PIXELOBJS[x][y].append(obj)
-    # c.delete(obj)
-    # OLDTAG = tag
+        obj = c.create_polygon([x, y], [x, y + d], [x + d, y + d], [x + d, y], fill=colorr, tag=f"t{tag}")
+        if not lineFl:
+            PIXELOBJS[x][y].append(obj)
+        # print(c.coords(obj))
 
 
 def draw_dots_circle(dot_c, dot_dif, colorr, tag):
@@ -456,12 +368,12 @@ def dda_draw(start, stop, colorr, tag, count_fl=False):
 
     i = 0
     while i <= L:
-        draw_dot(round(x[i]), round(y[i]), colorr, tag, count_fl)
+        draw_dot(round(x[i]), round(y[i]), colorr, tag, True)
         i += 1
 
 
-def dda_draw_to_border(start, stop, tag, border, changeDirFlag):
-    global PIXELCOLORS, DROWEDSTARTS
+def dda_draw_to_border(start, stop, tag, border, changeDirFlag, unFillFlag=0):
+    global PIXELCOLORS, DROWEDSTARTS, bufPIXELOBJS
 
     x1, y1 = start
     x2, y2 = stop
@@ -494,34 +406,37 @@ def dda_draw_to_border(start, stop, tag, border, changeDirFlag):
     if changeDirFlag:
         i = 1
 
-    while i < L:
-        # draw_dot(round(x[i]), round(y[i]), colorr, tag, count_fl)
-        # if round(y[i]) in DROWEDSTARTS:
-        #     continue
-        for xx in range(round(x[i]), border):
-            if type(PIXELCOLORS[xx][round(y[i])]) != list:
+    if not unFillFlag:
+        while i < L:
+            for xx in range(round(x[i]), border):
                 curColor = PIXELCOLORS[xx][round(y[i])]
-                if curColor != colorBG[1] and curColor != colorDraw[1]:
-                    PIXELCOLORS[xx][round(y[i])] = [PIXELCOLORS[xx][round(y[i])]]
+
+                if curColor != colorDraw[1]:
                     curColor = colorDraw[1]
                 else:
-                    if curColor != colorDraw[1]:
-                        curColor = colorDraw[1]
-                    else:
-                        curColor = colorBG[1]
-                    PIXELCOLORS[xx][round(y[i])] = curColor
+                    curColor = colorBG[1]
+                PIXELCOLORS[xx][round(y[i])] = curColor
 
-                # if PIXELCOLORS[xx][round(y[i])] != colorBG[1] and PIXELCOLORS[xx][round(y[i])] != colorDraw[1]:
-                #     PIXELCOLORS[xx][round(y[i])] = [PIXELCOLORS[xx][round(y[i])]]
-                # else:
-                #     PIXELCOLORS[xx][round(y[i])] = curColor
-            else:
-                curColor = PIXELCOLORS[xx][round(y[i])][0]
-                PIXELCOLORS[xx][round(y[i])] = PIXELCOLORS[xx][round(y[i])][0]
-            draw_dot(xx, round(y[i]), curColor, tag)
-        i += 1
-
-
+                draw_dot(xx, round(y[i]), curColor, tag)
+            i += 1
+    else:
+        while i < L:
+            for xx in range(round(x[i]), border):
+                if bufPIXELOBJS[xx][round(y[i])] != []:
+                    # c.insert(bufPIXELOBJS[xx][round(y[i])])
+                    obj = bufPIXELOBJS[xx][round(y[i])]
+                    col, tag = obj
+                    yy = round(y[i])
+                    d = 1
+                    c.create_polygon([xx, yy], [xx, yy + d], [xx + d, yy + d], [xx + d, yy], fill=col, tag=tag)
+                    draw_dot(xx, yy, col, tag.strip('t'))
+                    PIXELOBJS[xx][yy].append(obj)
+                    bufPIXELOBJS[xx][round(y[i])] = []
+                else:
+                    if len(PIXELOBJS[xx][round(y[i])]):
+                        bufPIXELOBJS[xx][round(y[i])] = [c.itemcget(PIXELOBJS[xx][round(y[i])][-1], 'fill'), c.itemcget(PIXELOBJS[xx][round(y[i])][-1], 'tag')]
+                        draw_dot(xx, round(y[i]), colorBG[1], tag)
+            i += 1
 
     # DROWEDSTARTS += [y1, y2]
 
@@ -587,15 +502,70 @@ def fillWithDelay():
     fill()
     TIME_FLAG = 0
 
-def fill(st=1):
-    global DOTS, TAG, colorDraw, story
+def fill(st=1, dots=None, tag=None):
+    global DOTS, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG
+    start = time()
+    if not dots:
+        dots = DOTS
+        close()
+        tag = TAG
+    else:
+        dots = [dots]
+        tag = tag
+
+    if var.get():
+        TIME_FLAG = 1
+    else:
+        TIME_FLAG = 0
+
+
+    # dots = [(257, 619), (289, 418), (302, 469), (351, 438), (271, 386), (350, 356), (387, 458), (484, 574), (333, 675)]
+
+    borderR = max([dot[0] for dot in dots[-1]])
+    # borderL = min([dot[0] for dot in dots[-1]])
+    # borderT = max([dot[1] for dot in dots[-1]])
+    # borderB = min([dot[1] for dot in dots[-1]])
+    for i in range(len(dots[-1])):
+        dir = 0
+        # if i != 0:
+        arr = sorted([dots[-1][i - 1][1], dots[-1][i][1], dots[-1][(i + 1) % len(dots[-1])][1]])
+        if dots[-1][i][1] != arr[1]:
+            dir = 1
+
+        dda_draw_to_border(dots[-1][i], dots[-1][(i + 1) % len(dots[-1])], tag, borderR, dir)
+
+    # for i in range(borderL, borderR):
+    #     for j in range(borderB, borderT):
+    #         if type(PIXELCOLORS[i][j]) == list:
+    #             PIXELCOLORS[i][j] = colorDraw[1]
+
+    PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
+
+    if st:
+        story.append(f'del_with_tag("t{tag}");DOTS.pop();resetPixels()')
+        TAG += 1
+        dots.append([])
+
+    stop = time()
+    ent1.delete(0, END)
+    ent1.insert(0, f't = {round(stop-start, 2)}"')
+
+
+def unFill(st=1):
+    global DOTS, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG, bufPIXELOBJS
+    start = time()
+    if var.get():
+        TIME_FLAG = 1
+    else:
+        TIME_FLAG = 0
+
     close()
     # DOTS = [(257, 619), (289, 418), (302, 469), (351, 438), (271, 386), (350, 356), (387, 458), (484, 574), (333, 675)]
 
     borderR = max([dot[0] for dot in DOTS[-1]])
-    borderL = min([dot[0] for dot in DOTS[-1]])
-    borderT = max([dot[1] for dot in DOTS[-1]])
-    borderB = min([dot[1] for dot in DOTS[-1]])
+    # borderL = min([dot[0] for dot in DOTS[-1]])
+    # borderT = max([dot[1] for dot in DOTS[-1]])
+    # borderB = min([dot[1] for dot in DOTS[-1]])
     for i in range(len(DOTS[-1])):
         dir = 0
         # if i != 0:
@@ -603,31 +573,43 @@ def fill(st=1):
         if DOTS[-1][i][1] != arr[1]:
             dir = 1
 
-        dda_draw_to_border(DOTS[-1][i], DOTS[-1][(i+1)%len(DOTS[-1])], TAG, borderR, dir)
+        dda_draw_to_border(DOTS[-1][i], DOTS[-1][(i+1)%len(DOTS[-1])], TAG, borderR, dir, 1)
 
-    for i in range(borderL, borderR):
-        for j in range(borderB, borderT):
-            if type(PIXELCOLORS[i][j]) == list:
-                PIXELCOLORS[i][j] = colorDraw[1]
+    # for i in range(borderL, borderR):
+    #     for j in range(borderB, borderT):
+    #         if type(PIXELCOLORS[i][j]) == list:
+    #             PIXELCOLORS[i][j] = colorDraw[1]
 
+    # PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
 
     if st:
-        story.append(f'del_with_tag("t{TAG}");DOTS.pop();resetPixels()')
+        story.append(f'fill(0, {str(DOTS[-1])});DOTS.pop();resetPixels()')
         # story.append(f'DOTS.pop()')
 
 
     #RESET!!!
 
+    bufPIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
     TAG += 1
     DOTS.append([])
-    # colorDraw[1] = ['blue', 'green', 'black', 'orange', 'pink', 'red'][TAG%6]
+    stop = time()
+    ent1.delete(0, END)
+    ent1.insert(0, f't = {round(stop-start, 2)}"')
 
 def resetPixels():
     global PIXELCOLORS
     PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
 
 def click(event):
-    global TAG, DOTS
+    global TAG, DOTS, TIME_FLAG
+
+    bufTimeFl = TIME_FLAG
+    TIME_FLAG = 0
+    # if var.get():
+    #     TIME_FLAG = 1
+    # else:
+    #     TIME_FLAG = 0
+
     # disable()
     # pixelColor(event.x, event.y)
     # dotts = c.find_withtag('dot')
@@ -671,7 +653,8 @@ def click(event):
     if event.x < 65 or event.x > 665 + dx or event.y < 210 or event.y > 810 + dy:
         return
 
-    print(PIXELCOLORS[event.x][event.y])
+    # print(PIXELCOLORS[event.x][event.y])
+    print(event.x, event.y)
     print_dot(event)
 
     dotts = c.find_withtag('dot')
@@ -684,6 +667,8 @@ def click(event):
         lines.append([DOTS[-1][-2], DOTS[-1][-1], 'black', TAG])
         story[-1] += f';del_with_tag("t{TAG}");lines.pop()'
         TAG += 1
+
+    TIME_FLAG = bufTimeFl
     # print(DOTS)
     # print(DICT)
     # if var.get():
@@ -911,7 +896,7 @@ def coordinate_field_creation():
 
 
 def start_state():
-    global story, rot_coords, res_coords, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches
+    global story, rot_coords, res_coords, lines, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches, DOTS, PIXELOBJS, PIXELCOLORS, colorBG
     scale(290, 290)
     story = []
     circles = []
@@ -925,8 +910,19 @@ def start_state():
         del_with_tag(f't{i}')
     del_with_tag('start')
     del_with_tag('stop')
+    del_with_tag('dot')
     TAG = 0
-    # ent1.insert(0, 0)
+    # TIME_FLAG = 0
+    DOTS = [[]]
+    lines = []
+    PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
+    PIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
+    colorBG = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
+    coordinate_field_creation()
+
+    # bufPIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
+    ent1.delete(0, END)
+    ent1.insert(0, 't = ')
     # ent2.insert(0, 200)
     # ent3.insert(0, 50)
     # ent4.insert(0, -150)
@@ -976,11 +972,11 @@ def config(event):
             btn_places[k] = [name, int(btn.split('x=')[1].split(',')[0]), int(btn.split('y=')[1].split(')')[0])]
             k += 1
 
-        if 'set' in ents:
-            for rbtn in rbtns.split('\n'):
-                rbtn, koef = rbtn.split(':')
-                ind = int(rbtn.split('set')[1].split('.')[0])
-                radiobtn_places[ind] = [int(rbtn.split('x=')[1].split(',')[0]), int(rbtn.split('y=')[1].split(')')[0]), float(koef)]
+        # if 'set' in ents:
+        for rbtn in rbtns.split('\n'):
+            rbtn, koef = rbtn.split(':')
+            ind = int(rbtn.split('set')[1].split('.')[0])
+            radiobtn_places[ind] = [int(rbtn.split('x=')[1].split(',')[0]), int(rbtn.split('y=')[1].split(')')[0]), float(koef)]
 
         # try:
         for i in range(max_elems):
