@@ -124,19 +124,7 @@ rbtns = '''set0.place(x=100, y=20):1
 set1.place(x=100, y=50):1'''
 
 TASK = '''
-Реализовать различные алгоритмы построения одиночных отрезков. Отрезок задается координатой начала, координатой конца и цветом.
-
-Сравнить визуальные характеристики отрезков, построенных разными алгоритмами, с помощью построения пучка отрезков, с заданным шагом.
-
-Сравнение со стандартным алгоритмом. Задаются начальные и конечные координаты; рисуется отрезок разными методами. Отрисовка отрезка другим цветом и методом поверх первого, для проверки совпадения. Предоставить пользователю возможность выбора двух цветов – цвета фона и цвета рисования. Алгоритмы выбирать из выпадающего списка.
-
-- ЦДА
-- Брезенхем действительные числа
-- Брезенхем целые числа
-- Брезенхем с устранением ступенчатости
-- ВУ
-
-Построение гистограмм по количеству ступенек в зависимости от угла наклона.
+Необходимо обеспечить ввод произвольной многоугольной области, содержащей произвольное количество отверстий. Ввод (вершин многоугольника) производить с помощью мыши, при этом для удобства пользователя должны отображаться ребра, соединяющие вводимые вершины. Предусмотреть ввод горизонтальных и вертикальных ребер. Должен быть предусмотрен ввод затравочной точки.
 '''
 AUTHOR = '\n\nНиколаев Сергей ИУ7-44Б'
 sz = 1
@@ -145,7 +133,7 @@ dx = 0
 dy = 0
 color_coords = (98, 135), (98, 153), (149, 153), (149, 135)
 resized_coords = [[89, 135], [89, 153], [139, 153], [139, 135]]
-colorDraw = [(255, 0, 0), '#4b0082']
+colorDraw = [(255, 0, 0), '#0000ff']
 
 color_coords1 = (125, 844), (125, 862), (175, 862), (175, 844)
 resized_coords1 = [[125, 844], [125, 862], [175, 862], [175, 844]]
@@ -163,8 +151,8 @@ TAG = 0
 TIME_FLAG = 0
 TIME_LINE_FLAG = 0
 DOTS = [[]]
-PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
-# PIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
+PIXELCOLORS = []
+PIXELOBJS = []
 # bufPIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
 DROWEDSTARTS = []
 DICT = {}
@@ -197,22 +185,41 @@ def draw_dot(x, y, colorr, tag, lineFl=False):
         # if not lineFl:
         #     PIXELOBJS[x][y].append(obj)
         # print(c.coords(obj))
+    return obj
 
 
 def redraw_elems():
-    del_with_tag('start')
-    del_with_tag('stop')
-    global TAG
-    for i in range(TAG):
-        del_with_tag(f't{i}')
-    for line in lines:
-        br_int_draw(line[0], line[1], line[2], line[3])
-    for ellipse in ellipses:
-        draw_ellipse(ellipse[0], ellipse[1], ellipse[2], ellipse[3], ellipse[4], False, 0)
-    for bunch in circle_bunches:
-        draw_circle_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
-    for bunch in ellipse_bunches:
-        draw_ellipse_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
+    return
+    global PIXELOBJS, PIXELCOLORS
+    sleep(1)
+
+    for i in range(len(PIXELOBJS)):
+        for j in range(len(PIXELOBJS[0])):
+            # c.delete(PIXELOBJS[i][j])
+            if PIXELOBJS[i][j]:
+                c.itemconfigure(PIXELOBJS[i][j], state='hidden')
+                ii, jj = net_to_canv(canv_to_net(i, j))
+                PIXELCOLORS[i][j], PIXELCOLORS[ii][jj] = PIXELCOLORS[ii][jj], PIXELCOLORS[i][j]
+                PIXELOBJS[i][j] = []
+                PIXELOBJS[ii][jj] = draw_dot(ii,  jj)
+                c.itemconfigure(PIXELOBJS[i][j], state='normal')
+            # if PIXELOBJS[i][j] and PIXELOBJS[i][j][0] == tag:
+            #     PIXELCOLORS[i][j] = colorBG[1]
+            #     PIXELOBJS[i][j] = []
+
+    # del_with_tag('start')
+    # del_with_tag('stop')
+    # global TAG
+    # for i in range(TAG):
+    #     del_with_tag(f't{i}')
+    # for line in lines:
+    #     br_int_draw(line[0], line[1], line[2], line[3])
+    # for ellipse in ellipses:
+    #     draw_ellipse(ellipse[0], ellipse[1], ellipse[2], ellipse[3], ellipse[4], False, 0)
+    # for bunch in circle_bunches:
+    #     draw_circle_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
+    # for bunch in ellipse_bunches:
+    #     draw_ellipse_bunch(bunch[0], bunch[1], bunch[2], bunch[3], bunch[4], bunch[5], 0)
 
 
 def line_col_choose():
@@ -323,6 +330,7 @@ def unDelay():
 
 
 def br_int_draw(start, stop, colorr, tag, count_fl=False):
+    global PIXELOBJS
     x0, y0 = list(map(round, start))
     x1, y1 = list(map(round, stop))
     dx = x1 - x0
@@ -353,7 +361,7 @@ def br_int_draw(start, stop, colorr, tag, count_fl=False):
     if dx >= dy:
         for x in range(x0, x1):
             PIXELCOLORS[x][y] = BORDERCOLOR
-            draw_dot(x, y, colorr, tag, count_fl)
+            PIXELOBJS[x][y] = [tag, draw_dot(x, y, colorr, tag, count_fl)]
             error += deltaerr
             if error >= dx + 1:
                 y += diry
@@ -361,7 +369,7 @@ def br_int_draw(start, stop, colorr, tag, count_fl=False):
     else:
         for y in range(y0, y1):
             PIXELCOLORS[x][y] = BORDERCOLOR
-            draw_dot(x, y, colorr, tag, count_fl)
+            PIXELOBJS[x][y] = [tag, draw_dot(x, y, colorr, tag, count_fl)]
             error += deltaerr1
             if error >= dy + 1:
                 x += dirx
@@ -372,7 +380,7 @@ def close(event=None):
     global TAG, DOTS
     br_int_draw(DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG)
     lines.append([DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG])
-    story.append(f'del_with_tag("t{TAG}");DOTS.pop()')
+    story.append(f'del_with_tag("t{TAG}");DOTS.pop();delObjs({TAG})')
     TAG += 1
     DOTS.append([])
 
@@ -381,8 +389,8 @@ def fillTriger():
     global FILLFLAG
     FILLFLAG = 1
 
-def fillProcess(start, st=1):
-    global DOTS, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG, FILLFLAG, TIME_LINE_FLAG
+def fillProcess(start, st=1, dir=2):
+    global DOTS, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG, FILLFLAG, TIME_LINE_FLAG, PIXELOBJS
     startTime = time()
     FILLFLAG = 0
 
@@ -403,27 +411,32 @@ def fillProcess(start, st=1):
             DOTS.append([])
             return
         if PIXELCOLORS[xl][y] != BORDERCOLOR:
-            draw_dot(xl, y, colorDraw[1], TAG)
+            PIXELOBJS[xl][y] = [TAG, draw_dot(xl, y, colorDraw[1], TAG)]
             PIXELCOLORS[xl][y] = colorDraw[1]
             xl -= 1
         if PIXELCOLORS[xr][y] != BORDERCOLOR:
-            draw_dot(xr, y, colorDraw[1], TAG)
+            PIXELOBJS[xr][y] = [TAG, draw_dot(xr, y, colorDraw[1], TAG)]
             PIXELCOLORS[xr][y] = colorDraw[1]
             xr += 1
     if TIME_LINE_FLAG:
         c.update()
     xl += 1
+
+    # if dir == 1 or dir == 2:
     for x in range(xl, xr):
-        if x == xr-1 and PIXELCOLORS[x][y-1] == colorBG[1] or x != xl and PIXELCOLORS[x][y-1] != colorBG[1] and PIXELCOLORS[x-1][y-1] == colorBG[1]:
-            fillProcess([x-1, y-1], 0)
-        if x == xr-1 and PIXELCOLORS[x][y+1] == colorBG[1] or x != xl and PIXELCOLORS[x][y+1] != colorBG[1] and PIXELCOLORS[x-1][y+1] == colorBG[1]:
-            fillProcess([x-1, y+1], 0)
+        if (x == xr-1 or x != xl and PIXELCOLORS[x][y-1] == BORDERCOLOR and PIXELCOLORS[x-1][y-1] != BORDERCOLOR) and PIXELCOLORS[x-1][y-1] != colorDraw[1] and xr-xl != 1:
+            fillProcess([x-1, y-1], 0, 1)
+
+    # if dir == 0 or dir == 2:
+    for x in range(xl, xr):
+        if (x == xr-1 or x != xl and PIXELCOLORS[x][y+1] == BORDERCOLOR and PIXELCOLORS[x-1][y+1] != BORDERCOLOR) and PIXELCOLORS[x-1][y+1] != colorDraw[1] and xr-xl != 1:
+            fillProcess([x-1, y+1], 0, 0)
 
 
     # PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
 
     if st:
-        story[-1] += f';del_with_tag("t{TAG}");DOTS.pop()'
+        story[-1] += f';del_with_tag("t{TAG}");DOTS.pop();delObjs({TAG})'
         TAG += 1
         DOTS.append([])
         stop = time()
@@ -434,7 +447,16 @@ def fillProcess(start, st=1):
 
 def resetPixels():
     global PIXELCOLORS
-    PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
+    PIXELCOLORS = [[colorBG[1] for _ in range(1354)] for _ in range(2560)]
+
+
+def delObjs(tag):
+    global PIXELOBJS, PIXELCOLORS
+    for i in range(len(PIXELOBJS)):
+        for j in range(len(PIXELOBJS[0])):
+            if PIXELOBJS[i][j] and PIXELOBJS[i][j][0] == tag:
+                PIXELCOLORS[i][j] = colorBG[1]
+                PIXELOBJS[i][j] = []
 
 
 def click(event):
@@ -449,23 +471,23 @@ def click(event):
         fillProcess([event.x, event.y])
         return
 
-    for dot in DOTS[-1]:
-        if is_cursor_touch_dot(dot, event):
-            DOTS[-1].append(dot)
-            br_int_draw(DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG)
-
-            dotts = c.find_withtag('dot')
-            story.append(f'c.delete({dotts[-1]});DOTS[-1].pop()')
-
-            crds = event.x, event.y
-            DOTS[-1].append(crds)
-            if len(DOTS[-1]) > 1:
-                br_int_draw(DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG)
-                lines.append([DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG])
-                story[-1] += f';del_with_tag("t{TAG}");lines.pop();'
-
-            TAG += 1
-            return
+    # for dot in DOTS[-1]:
+    #     if is_cursor_touch_dot(dot, event):
+    #         DOTS[-1].append(dot)
+    #         br_int_draw(DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG)
+    #
+    #         dotts = c.find_withtag('dot')
+    #         story.append(f'c.delete({dotts[-1]});DOTS[-1].pop()')
+    #
+    #         crds = event.x, event.y
+    #         DOTS[-1].append(crds)
+    #         if len(DOTS[-1]) > 1:
+    #             br_int_draw(DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG)
+    #             lines.append([DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG])
+    #             story[-1] += f';del_with_tag("t{TAG}");lines.pop();delObjs({TAG})'
+    #
+    #         TAG += 1
+    #         return
 
     if event.x < 65 or event.x > 665 + dx or event.y < 210 or event.y > 810 + dy:
         return
@@ -478,18 +500,23 @@ def click(event):
     print_dot(event)
 
     dotts = c.find_withtag('dot')
-    story.append(f'c.delete({dotts[-1]});DOTS[-1].pop()')
+    story.append(f'c.delete({dotts[-1]});DOTS[-1].pop();delDotPixels({[event.x, event.y]})')
 
     crds = event.x, event.y
     DOTS[-1].append(crds)
     if len(DOTS[-1]) > 1:
         br_int_draw(DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG)
         lines.append([DOTS[-1][-2], DOTS[-1][-1], BORDERCOLOR, TAG])
-        story[-1] += f';del_with_tag("t{TAG}");lines.pop()'
+        story[-1] += f';del_with_tag("t{TAG}");lines.pop();delObjs({TAG})'
         TAG += 1
 
     TIME_FLAG = bufTimeFl
 
+def delDotPixels(coords):
+    x, y = coords
+    for i in range(x-1, x+2):
+        for j in range(y - 1, y + 2):
+            PIXELCOLORS[i][j] = colorBG
 
 def motion(event):
     x, y = event.x, event.y
@@ -737,8 +764,8 @@ def start_state():
     # TIME_FLAG = 0
     DOTS = [[]]
     lines = []
-    PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
-    PIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
+    PIXELCOLORS = [[colorBG[1] for _ in range(1354)] for _ in range(2560)]
+    PIXELOBJS = [[[] for _ in range(1354)] for _ in range(2650)]
     colorBG = [(254.9921875, 255.99609375, 255.99609375), '#feffff']
     coordinate_field_creation()
 
