@@ -76,7 +76,7 @@ btn_col_bg = Button(window, text='v', fg='green', command=lambda: bg_col_choose(
 btn_back = Button(window, text='назад', fg='purple', command=lambda: back())
 btn_cl_all = Button(window, text='🗑заново', fg='orange', command=lambda: start_state())
 btn_draw_circle = Button(window, text='Отсекатель', fg='red', command=lambda: cutterDraw())
-btn_draw_ellipse = Button(window, text='Отрезок', fg='blue', command=lambda: lineDraw())
+btn_draw_ellipse = Button(window, text='замкнуть', fg='blue', command=lambda: close())
 btn_delay = Button(window, text='>>', fg='green', command=lambda: unDelay())
 # btn_draw_ellipse_bunch = Button(window, text='🎨⬯⬯', fg='blue', command=lambda: draw_ellipse_bunch(TAG))
 btn_colorimeter = Button(window, text='🔍', fg='blue', command=lambda: os.system('open /System/Applications/Utilities/Digital\ Color\ Meter.app'))
@@ -127,10 +127,10 @@ label20.place(x=185, y=3)'''
 
 btns = '''btn_col_line.place(x=135, y=133)
 btn_back.place(x=116, y=175)
-btn_colorimeter.place(x=20, y=80)
+btn_colorimeter.place(x=100, y=80)
 btn_exit.place(x=630, y=840)
 btn_draw_circle.place(x=240, y=39)
-btn_draw_ellipse.place(x=240, y=86)
+btn_draw_ellipse.place(x=15, y=80)
 btn_cl_all.place(x=15, y=175)'''
 
 rbtns = '''set0.place(x=20, y=20):1
@@ -165,7 +165,7 @@ cnt = -1
 TAG = 0
 TIME_FLAG = 0
 TIME_LINE_FLAG = 0
-DOTS = [[]]
+DOTS = []
 PIXELCOLORS = []
 PIXELOBJS = []
 # bufPIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
@@ -402,13 +402,18 @@ def br_int_draw(start, stop, colorr, tag, count_fl=False):
                 error -= (dy + 1)
 
 
+CUTTERENDEDITING = 0
 def close(event=None):
-    global TAG, DOTS
-    br_int_draw(DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG)
-    lines.append([DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG])
-    story.append(f'del_with_tag("t{TAG}");DOTS.pop();delObjs({TAG})')
+    global TAG, DOTS, CUTTERENDEDITING
+
+    print('DOOOTS:', DOTS[0], DOTS[1])
+    c.create_line(DOTS[0], DOTS[-1], fill='red', width=2, tag=f'line{TAG}')
+    # br_int_draw(DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG)
+    # lines.append([DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG])
+    # story.append(f'del_with_tag("t{TAG}");DOTS.pop();delObjs({TAG})')
     TAG += 1
-    DOTS.append([])
+    CUTTERENDEDITING = 1
+    # DOTS.append([])
 
 
 def fillTriger():
@@ -536,6 +541,138 @@ def get_distance(dot_start, dot_end):
     return sqrt((dot_start[0] - dot_end[0]) ** 2 + (dot_start[1] - dot_end[1]) ** 2)
 
 
+def get_vect(dot_start, dot_end):
+    return [dot_end[0] - dot_start[0], dot_end[1] - dot_start[1]]
+
+
+def get_vect_mul(fvector, svector):
+    return fvector[0] * svector[1] - fvector[1] * svector[0]
+
+
+def get_scalar_mul(fvector, svector):
+    return fvector[0] * svector[0] + fvector[1] * svector[1]
+
+
+def get_normal(dot_start, dot_end, dot_check):
+    vect = get_vect(dot_start, dot_end)
+    normal = None
+
+    if vect[0] == 0:
+        normal = [1, 0]
+    else:
+        normal = [-vect[1] / vect[0], 1]
+
+    if get_scalar_mul(get_vect(dot_end, dot_check), normal) < 0:
+        for i in range(len(normal)):
+            normal[i] = -normal[i]
+
+    return normal
+
+
+def get_normals(cut):
+    normals = []
+    cutlen = len(cut)
+
+    for i in range(cutlen):
+        normals.append(get_normal(cut[i], cut[(i + 1) % cutlen], cut[(i + 2) % cutlen]))
+
+    return normals
+
+
+def check_cut(cut):
+    if len(cut) < 3:
+        return False
+
+    vect1 = get_vect(cut[0], cut[1])
+    vect2 = get_vect(cut[1], cut[2])
+
+    sign = None
+    if get_vect_mul(vect1, vect2) > 0:
+        sign = 1
+    else:
+        sign = -1
+
+    for i in range(3, len(cut)):
+        vecti = get_vect(cut[i - 2], cut[i - 1])
+        vectj = get_vect(cut[i - 1], cut[i])
+
+        if sign * get_vect_mul(vecti, vectj) < 0:
+            return False
+    if sign < 0:
+        cut.reverse()
+
+    return True
+
+
+def cyrusbeck(cut, section, normals, tag):
+    if not isCutterConvex(cut):
+        box.showinfo('Error', 'Отсекатель невыпуклый!')
+        return
+
+    t_start = 0
+    t_end = 1
+
+    vect = get_vect(section[0], section[1])
+    cutlen = len(cut)
+
+    for i in range(cutlen):
+        w_vect = get_vect(cut[(i + 1) % cutlen], section[0])
+        if cut[i] != section[0]:
+            w_vect = get_vect(cut[i], section[0])
+
+        vect_scal = get_scalar_mul(vect, normals[i])
+        w_vect_scal = get_scalar_mul(w_vect, normals[i])
+
+        if vect_scal == 0:
+            if w_vect_scal < 0:
+                return
+            continue
+
+        t = -w_vect_scal / vect_scal
+        if vect_scal > 0:
+            if t > t_start:
+                t_start = t
+        else:
+            if t < t_end:
+                t_end = t
+
+        if t_start > t_end:
+            break
+
+    if t_start < t_end:
+        dot_start = [round(section[0][0] + vect[0] * t_start),
+                     round(section[0][1] + vect[1] * t_start)]
+        dot_end = [round(section[0][0] + vect[0] * t_end),
+                   round(section[0][1] + vect[1] * t_end)]
+        # root.draw_line(dot_start, dot_end, root.res_color)
+        print('opa')
+        c.create_line(dot_start, dot_end, fill=colorDraw[1], width=3, tag=f'line{tag}')
+    # else:
+    #     box.showinfo('Error', 'Отсекатель выпуклый!')
+
+
+def isCutterConvex(cutter):
+    PosAngle = False
+    NegAngle = False
+    for i in range(len(cutter)):
+        x1 = cutter[i][0]
+        y1 = cutter[i][1]
+        x2 = cutter[(i + 1)%len(cutter)][0]
+        y2 = cutter[(i + 1) % len(cutter)][1]
+        x3 = cutter[(i + 2) % len(cutter)][0]
+        y3 = cutter[(i + 2) % len(cutter)][1]
+        d = (x2-x1)*(y3-y2)-(y2-y1)*(x3-x2)
+        if d > 0:
+            PosAngle = True
+        elif d < 0:
+            NegAngle = True
+
+    if PosAngle and NegAngle:
+        return False
+    else:
+        return True
+
+
 def midpointcut(cutter, dot_start, dot_end, eps, tag):
     i = 1
     while True:
@@ -607,53 +744,37 @@ defCoords = [0]*2
 def click(event):
     global defCoords, SHIFTFLAG, TAG, DOTS, TIME_FLAG, FILLFLAG, CUTTERFLAG, CUTTER_START, LINEFLAG, LINE_START, CUTTER_END
 
-    # if FILLFLAG:
-    #     event.y -= 10
-    #     print_dot(event)
-    #     fillProcess([event.x, event.y])
-    #     return
-
     if event.x < 65 or event.x > 665 + dx or event.y < 210 or event.y > 810 + dy:
         return
 
-    # print(PIXELCOLORS[event.x][event.y])
-    if CUTTERFLAG == 2:
-        CUTTER_START = [event.x-15, event.y-10]
+    if not CUTTERENDEDITING:
+        DOTS.append([event.x, event.y-10])
+        del_with_tag('lineHelper')
 
-    if CUTTERFLAG == 1:
-        del_with_tag('cutter')
-        # btn_draw_circle.place(x=-240, y=39)
-        # btn_draw_ellipse.place(x=240, y=86)
-        obj = c.create_rectangle(CUTTER_START, event.x, event.y, outline='red', width=2, tag='cutter')
-        CUTTER_END = [event.x, event.y]
-        if CUTTER_END[1] < CUTTER_START[1]:
-            CUTTER_END[1], CUTTER_START[1] = CUTTER_START[1], CUTTER_END[1]
-        if CUTTER_END[0] < CUTTER_START[0]:
-            CUTTER_END[0], CUTTER_START[0] = CUTTER_START[0], CUTTER_END[0]
-        redrawCommands.append(f'del_with_tag("cutter")')
-        redrawCommands.append(f'updateDots({CUTTER_START}, {CUTTER_END})')
-        defCoords = canv_to_net(CUTTER_START), canv_to_net(CUTTER_END)
-        # com = f'CUTTER_START = net_to_canv({canv_to_net(CUTTER_START)});CUTTER_END = net_to_canv({canv_to_net(CUTTER_END)})'
-        redrawCommands.append(f'c.create_rectangle(net_to_canv({canv_to_net(CUTTER_START)}), net_to_canv({canv_to_net(CUTTER_END)}), outline=\'red\', width=2, tag=\'cutter\')')
-        # redrawCommands.append(
-        #     f'c.create_rectangle(CUTTER_START, CUTTER_END, outline=\'red\', width=2, tag=\'cutter\')')
-        story.append(f'del_with_tag("cutter");redrawCommands.pop();redrawCommands.pop();redrawCommands.pop()')
+        if SHIFTFLAG:
+            if abs(DOTS[-2][0] - event.x) < abs(DOTS[-2][1] - event.y + 10):
+                DOTS[-1][0] = DOTS[-2][0]
+            else:
+                DOTS[-1][1] = DOTS[-2][1]
 
-    CUTTERFLAG -= 1
-    # if len(story):
-    #     story[-1] += ';CUTTERFLAG += 1;'
-    # else:
-    #     story.append('CUTTERFLAG += 1;')
+        if len(DOTS) > 1:
+            obj = c.create_line(DOTS[-2], DOTS[-1], fill='red', width=2, tag=f'line{TAG}')
 
-    if CUTTERFLAG < 1:
+            redrawCommands.append(f'del_with_tag("line{TAG}")')
+            redrawCommands.append(f'c.create_line(net_to_canv({canv_to_net(DOTS[-2])}), net_to_canv({canv_to_net(DOTS[-1])}), fill=\'red\', width=2, tag=f\'line{TAG}\')')
+
+            story.append(f'del_with_tag("line{TAG}");redrawCommands.pop();redrawCommands.pop();redrawCommands.pop()')
+
+            TAG += 1
+    else:
         LINEFLAG += 1
         # story[-1] += ';LINEFLAG -= 1;'
-        if not LINEFLAG % 2:
-            LINE_START = [event.x, event.y-10]
+        if LINEFLAG % 2:
+            LINE_START = [event.x, event.y - 10]
         elif LINEFLAG > 1:
             del_with_tag('lineHelper')
-            CUTTER_START = net_to_canv(defCoords[0])
-            CUTTER_END = net_to_canv(defCoords[1])
+            # CUTTER_START = net_to_canv(defCoords[0])
+            # CUTTER_END = net_to_canv(defCoords[1])
             LINE_END = [event.x, event.y - 10]
 
             if SHIFTFLAG:
@@ -666,24 +787,26 @@ def click(event):
                     LINE_END[1] = LINE_START[1]
 
             obj = c.create_line(LINE_START, LINE_END, fill='black', width=1, dash=(7, 9), tag=f'line{TAG}')
-            x1, y1 = canv_to_net(CUTTER_START[0], CUTTER_START[1])
-            x2, y2 = canv_to_net(CUTTER_END[0], CUTTER_END[1])
+            # x1, y1 = canv_to_net(CUTTER_START[0], CUTTER_START[1])
+            # x2, y2 = canv_to_net(CUTTER_END[0], CUTTER_END[1])
+            cyrusbeck(DOTS, [LINE_START, LINE_END], get_normals(DOTS), TAG)
 
             # midpointcut([CUTTER_START[0], CUTTER_END[1],  CUTTER_END[0], CUTTER_START[1]], LINE_START, [event.x, event.y - 10], 1e-1, TAG)
-            midpointcut([CUTTER_START[0], CUTTER_START[1], CUTTER_END[0], CUTTER_END[1]], LINE_START,
-                        LINE_END, 1e-1, TAG)
+            # midpointcut([CUTTER_START[0], CUTTER_START[1], CUTTER_END[0], CUTTER_END[1]], LINE_START,
+            #             LINE_END, 1e-1, TAG)
             # midpointcut([net_to_canv(x1, y1)[0], net_to_canv(x1, y1)[1], net_to_canv(x2, y2)[0],
             #              net_to_canv(x2, y2)[1]], net_to_canv(canv_to_net(LINE_START)),
             #             net_to_canv(canv_to_net(event.x, event.y - 10)), 1e-1, TAG)
             redrawCommands.append(f'del_with_tag("line{TAG}")')
-            redrawCommands.append(f'c.create_line(net_to_canv({canv_to_net(LINE_START)}), net_to_canv({canv_to_net(LINE_END)}), fill=\'black\', width=1, dash=(7, 9), tag=f\'line{TAG}\')')
-
             redrawCommands.append(
-                f'midpointcut([net_to_canv({x1, y1})[0], net_to_canv({x1, y1})[1], net_to_canv({x2, y2})[0], net_to_canv({x2, y2})[1]], net_to_canv({canv_to_net(LINE_START)}), net_to_canv({canv_to_net(LINE_END)}), 1e-1, {TAG})')
+                f'c.create_line(net_to_canv({canv_to_net(LINE_START)}), net_to_canv({canv_to_net(LINE_END)}), fill=\'black\', width=1, dash=(7, 9), tag=f\'line{TAG}\')')
+
+            # redrawCommands.append(
+            #     f'midpointcut([net_to_canv({x1, y1})[0], net_to_canv({x1, y1})[1], net_to_canv({x2, y2})[0], net_to_canv({x2, y2})[1]], net_to_canv({canv_to_net(LINE_START)}), net_to_canv({canv_to_net(LINE_END)}), 1e-1, {TAG})')
             story.append(f'del_with_tag("line{TAG}");redrawCommands.pop();redrawCommands.pop();redrawCommands.pop()')
 
-
             TAG += 1
+
     print(event.x, event.y)
     SHIFTFLAG = 0
 
@@ -718,27 +841,39 @@ def motion(event, fl=0):
     if x < 65 or x > 665 + dx or y < 210 or y > 810 + dy:
         return
 
-    if CUTTERFLAG == 2:
-        del_with_tag('cutter')
-        c.create_rectangle(x-15, y-10, x, y, outline='black', width=1, tag='cutter')
+    # if CUTTERFLAG == 2:
+    #     del_with_tag('cutter')
+    #     c.create_rectangle(x-15, y-10, x, y, outline='black', width=1, tag='cutter')
+    #
+    # if CUTTERFLAG == 1:
+    #     del_with_tag('cutter')
+    #     c.create_rectangle(CUTTER_START, x, y, outline='black', width=1, dash=(5, 9), tag='cutter')
 
-    if CUTTERFLAG == 1:
-        del_with_tag('cutter')
-        c.create_rectangle(CUTTER_START, x, y, outline='black', width=1, dash=(5, 9), tag='cutter')
+    # if not CUTTERENDEDITING:
+    del_with_tag('lineHelper')
+    x1, y1 = (event.x - 1), (event.y - 1)
+    x2, y2 = (event.x + 1), (event.y + 1)
+    c.create_oval(x1, y1 - 10, x2, y2 - 10, outline='red', fill='red', tag='lineHelper',
+                  activeoutline='lightgreen',
+                  activefill='lightgreen')
+    c.create_line(x - 10, y - 10, x - 5, y - 10, fill='green', width=1, tag='lineHelper')
+    c.create_line(x + 5, y - 10, x + 10, y - 10, fill='green', width=1, tag='lineHelper')
+    c.create_line(x, y - 20, x, y - 15, fill='green', width=1, tag='lineHelper')
+    c.create_line(x, y, x, y - 5, fill='green', width=1, tag='lineHelper')
 
-    if LINEFLAG:
-        del_with_tag('lineHelper')
-        x1, y1 = (event.x - 1), (event.y - 1)
-        x2, y2 = (event.x + 1), (event.y + 1)
-        c.create_oval(x1, y1 - 10, x2, y2 - 10, outline='red', fill='red', tag='lineHelper',
-                      activeoutline='lightgreen',
-                      activefill='lightgreen')
-        c.create_line(x - 10, y - 10, x - 5, y - 10, fill='green', width=1, tag='lineHelper')
-        c.create_line(x + 5, y - 10, x + 10, y - 10, fill='green', width=1, tag='lineHelper')
-        c.create_line(x, y - 20, x, y - 15, fill='green', width=1, tag='lineHelper')
-        c.create_line(x, y, x, y - 5, fill='green', width=1, tag='lineHelper')
+    if not CUTTERENDEDITING and len(DOTS):
+        if not fl:
+            c.create_line(DOTS[-1], x, y-10, fill='black', width=1, dash=(7, 9), tag='lineHelper')
+        else:
+            if abs(DOTS[-1][0] - x) < abs(DOTS[-1][1] - y + 10):
+                x = DOTS[-1][0]
+                y -= 10
+            else:
+                y = DOTS[-1][1]
+            c.create_line(DOTS[-1], x, y, fill='black', width=1, dash=(7, 9), tag='lineHelper')
 
-        if not LINEFLAG % 2:
+    elif LINEFLAG:
+        if LINEFLAG % 2:
             if not fl:
                 c.create_line(LINE_START, x, y-10, fill='black', width=1, dash=(7, 9), tag='lineHelper')
             else:
@@ -967,9 +1102,12 @@ def coordinate_field_creation():
 
 
 def start_state():
-    global redrawCommands, LINEFLAG, CUTTERFLAG, story, rot_coords, res_coords, lines, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches, DOTS, PIXELOBJS, PIXELCOLORS, colorBG
+    global DOTS, CUTTERENDEDITING, redrawCommands, LINEFLAG, CUTTERFLAG, story, rot_coords, res_coords, lines, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches, DOTS, PIXELOBJS, PIXELCOLORS, colorBG
     scale(290, 290)
+    CUTTERENDEDITING = 0
+
     story = []
+    DOTS = []
     redrawCommands = []
     clean_all()
     CUTTERFLAG = 2
@@ -1056,6 +1194,7 @@ def config(event):
 
 c.bind('<1>', click)
 window.bind("<Command-z>", lambda event: back())
+window.bind("<Command-r>", exit)
 window.bind("<Configure>", config)
 window.bind("<Button-2>", close)
 window.bind("<Motion>", motion)

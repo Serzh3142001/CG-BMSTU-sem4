@@ -1,4 +1,4 @@
-from lab_07 import *
+from lab_08 import *
 a = 5-8
 
 if a > 0:
@@ -7,6 +7,7 @@ if a > 0:
     br_int_draw(start, stop, colorr, tag, count_fl=False)
     buttons_creation()
     canv_to_net(x, y=None)
+    check_cut(cut)
     clean_all()
     clean_coords()
     click(event)
@@ -14,6 +15,7 @@ if a > 0:
     config(event)
     coordinate_field_creation()
     cutterDraw()
+    cyrusbeck(cut, section, normals, tag)
     deepCpy(arr1)
     delDotPixels(coords)
     delObjs(tag)
@@ -22,6 +24,12 @@ if a > 0:
     fillProcess(start, st=1, dir=2)
     fillTriger()
     get_distance(dot_start, dot_end)
+    get_normal(dot_start, dot_end, dot_check)
+    get_normals(cut)
+    get_scalar_mul(fvector, svector)
+    get_vect(dot_start, dot_end)
+    get_vect_mul(fvector, svector)
+    isCutterConvex(cutter)
     is_cursor_touch_dot(dot, event)
     lineDraw()
     line_col_choose()
