@@ -162,7 +162,7 @@ old_angl = 0
 cnt = -1
 TAG = 0
 TIME_FLAG = 0
-DOTS = [[]]
+DOTS_CUTTER = [[]]
 PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
 PIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
 bufPIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
@@ -454,8 +454,8 @@ def printCorrectForm():
 
 def close():
     global TAG
-    dda_draw(DOTS[-1][0], DOTS[-1][-1], 'black', TAG)
-    lines.append([DOTS[-1][0], DOTS[-1][-1], 'black', TAG])
+    dda_draw(DOTS_CUTTER[-1][0], DOTS_CUTTER[-1][-1], 'black', TAG)
+    lines.append([DOTS_CUTTER[-1][0], DOTS_CUTTER[-1][-1], 'black', TAG])
     story.append(f'del_with_tag("t{TAG}");lines.pop()')
     TAG += 1
 
@@ -503,7 +503,7 @@ def fillWithDelay():
     TIME_FLAG = 0
 
 def fill(st=1, dots=None, tag=None):
-    global DOTS, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG
+    global DOTS_CUTTER, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG
     start = time()
     if not dots:
         dots = DOTS
@@ -552,7 +552,7 @@ def fill(st=1, dots=None, tag=None):
 
 
 def unFill(st=1):
-    global DOTS, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG, bufPIXELOBJS
+    global DOTS_CUTTER, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG, bufPIXELOBJS
     start = time()
     if var.get():
         TIME_FLAG = 1
@@ -601,7 +601,7 @@ def resetPixels():
     PIXELCOLORS = [[colorBG[1] for _ in range(2560)] for _ in range(1354)]
 
 def click(event):
-    global TAG, DOTS, TIME_FLAG
+    global TAG, DOTS_CUTTER, TIME_FLAG
 
     bufTimeFl = TIME_FLAG
     TIME_FLAG = 0
@@ -896,7 +896,7 @@ def coordinate_field_creation():
 
 
 def start_state():
-    global story, rot_coords, res_coords, lines, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches, DOTS, PIXELOBJS, PIXELCOLORS, colorBG
+    global story, rot_coords, res_coords, lines, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches, DOTS_CUTTER, PIXELOBJS, PIXELCOLORS, colorBG
     scale(290, 290)
     story = []
     circles = []

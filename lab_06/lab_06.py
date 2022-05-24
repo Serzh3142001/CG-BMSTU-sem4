@@ -154,7 +154,7 @@ cnt = -1
 TAG = 0
 TIME_FLAG = 0
 TIME_LINE_FLAG = 0
-DOTS = [[]]
+DOTS_CUTTER = [[]]
 PIXELCOLORS = []
 PIXELOBJS = []
 # bufPIXELOBJS = [[[] for _ in range(2560)] for _ in range(1354)]
@@ -381,7 +381,7 @@ def br_int_draw(start, stop, colorr, tag, count_fl=False):
 
 
 def close(event=None):
-    global TAG, DOTS
+    global TAG, DOTS_CUTTER
     br_int_draw(DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG)
     lines.append([DOTS[-1][0], DOTS[-1][-1], BORDERCOLOR, TAG])
     story.append(f'del_with_tag("t{TAG}");DOTS.pop();delObjs({TAG})')
@@ -394,7 +394,7 @@ def fillTriger():
     FILLFLAG = 1
 
 def fillProcess(start, st=1, dir=2):
-    global DOTS, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG, FILLFLAG, TIME_LINE_FLAG, PIXELOBJS
+    global DOTS_CUTTER, TAG, colorDraw, story, PIXELCOLORS, TIME_FLAG, FILLFLAG, TIME_LINE_FLAG, PIXELOBJS
     startTime = time()
     FILLFLAG = 0
 
@@ -464,7 +464,7 @@ def delObjs(tag):
 
 
 def click(event):
-    global TAG, DOTS, TIME_FLAG, FILLFLAG
+    global TAG, DOTS_CUTTER, TIME_FLAG, FILLFLAG
 
     bufTimeFl = TIME_FLAG
     TIME_FLAG = 0
@@ -749,7 +749,7 @@ def coordinate_field_creation():
 
 
 def start_state():
-    global story, rot_coords, res_coords, lines, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches, DOTS, PIXELOBJS, PIXELCOLORS, colorBG
+    global story, rot_coords, res_coords, lines, circles, circle_bunches, TAG, ellipses, circle_bunches, ellipse_bunches, DOTS_CUTTER, PIXELOBJS, PIXELCOLORS, colorBG
     scale(290, 290)
     story = []
     circles = []

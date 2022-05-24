@@ -193,21 +193,39 @@ def del_with_tag(tag, pos=0):
 CUTTERENDEDITING = 0
 def close(event=None):
     global TAG, DOTS_CUTTER, CUTTERENDEDITING
-    if not isCutterConvex(DOTS):
+    if not isCutterConvex(DOTS_CUTTER):
         box.showinfo('Error', 'Отсекатель невыпуклый!')
         start_state()
         return
 
     del_with_tag('lineHelper')
 
-    print('DOOOTS:', DOTS[0], DOTS[1])
-    c.create_line(DOTS[0], DOTS[-1], fill='red', width=2, tag=f'line{TAG}')
-    redrawCommands.append(
-        f'c.create_line(net_to_canv({canv_to_net(DOTS[0])}), net_to_canv({canv_to_net(DOTS[-1])}), fill=\'red\', width=2, tag=f\'line{TAG}\')')
-    story.append(f'del_with_tag("line{TAG}")')
+    print('DOOOTS:', DOTS_CUTTER[0], DOTS_CUTTER[1])
+
+    if not CUTTERENDEDITING:
+        c.create_line(DOTS_CUTTER[0], DOTS_CUTTER[-1], fill='red', width=2, tag=f'line{TAG}')
+        story.append(f'del_with_tag("line{TAG}");setNull()')
+        # redrawCommands.append(
+        #     f'c.create_line(net_to_canv({canv_to_net(DOTS_CUTTER[0])}), net_to_canv({canv_to_net(DOTS_CUTTER[-1])}), fill=\'red\', width=2, tag=f\'line{TAG}\')')
+    else:
+        c.create_line(DOTS_POLYGON[-1][0], DOTS_POLYGON[-1][-1], fill='black', width=1, tag=f'line{TAG}')
+        # res = sutherlandhodgman(DOTS_POLYGON[-1], DOTS_CUTTER, get_normals(DOTS_CUTTER))
+        res = cut_area(DOTS_CUTTER, DOTS_POLYGON[-1])
+        res.append(res[0])
+        print('res:', res)
+        c.create_line(res, fill='blue', width=3, tag=f'line{TAG}')
+        # 5 приоритетов геополитики
+        # redrawCommands.append(
+        #     f'c.create_line(net_to_canv({canv_to_net(DOTS_CUTTER[0])}), net_to_canv({canv_to_net(DOTS_CUTTER[-1])}), fill=\'black\', width=1, tag=f\'line{TAG}\')')
+        DOTS_POLYGON.append([])
+        story.append(f'del_with_tag("line{TAG}");DOTS_POLYGON.pop()')
+    # story.append(f'del_with_tag("line{TAG}")')
     TAG += 1
     CUTTERENDEDITING = 1
 
+def setNull():
+    global CUTTERENDEDITING
+    CUTTERENDEDITING = 0
 
 def get_vect(dot_start, dot_end):
     return [dot_end[0] - dot_start[0], dot_end[1] - dot_start[1]]
@@ -237,54 +255,136 @@ def get_normal(dot_start, dot_end, dot_check):
     return normal
 
 
-def get_normals(cut):
-    normals = []
-    cutlen = len(cut)
+#---------------------------------------------------
 
-    for i in range(cutlen):
-        normals.append(get_normal(cut[i], cut[(i + 1) % cutlen], cut[(i + 2) % cutlen]))
+def is_visible(dot, f_dot, s_dot):
+    vec1 = get_vect(f_dot, s_dot)
+    vec2 = get_vect(f_dot, dot)
 
-    return normals
+    if (get_vect_mul(vec1, vec2) <= 0):
+        return True
+    else:
+        return False
 
+X_DOT = 0
+Y_DOT = 1
 
-def cyrusbeck(cut, line, normals):
-    t_start = 0
-    t_end = 1
+def get_lines_parametric_intersec(line1, line2, normal):
+    d = get_vect(line1[0], line1[1])
+    w = get_vect(line2[0], line1[0])
 
-    vect = get_vect(line[0], line[1])
-    cutlen = len(cut)
+    d_scalar = get_scalar_mul(d, normal)
+    w_scalar = get_scalar_mul(w, normal)
 
-    for i in range(cutlen):
-        w_vect = get_vect(cut[(i + 1) % cutlen], line[0])
-        if cut[i] != line[0]:
-            w_vect = get_vect(cut[i], line[0])
+    t = -w_scalar / d_scalar
 
-        vect_scal = get_scalar_mul(vect, normals[i])
-        w_vect_scal = get_scalar_mul(w_vect, normals[i])
+    dot_intersec = [line1[0][X_DOT] + d[0] * t, line1[0][Y_DOT] + d[1] * t]
 
-        if vect_scal == 0:
-            if w_vect_scal < 0:
-                return
-            continue
+    return dot_intersec
 
-        t = -w_vect_scal / vect_scal
-        if vect_scal > 0:
-            if t > t_start:
-                t_start = t
+def sutherland_hodgman_algorythm(cutter_line, position, prev_result):
+    cur_result = []
+
+    dot1 = cutter_line[0]
+    dot2 = cutter_line[1]
+
+    normal = get_normal(dot1, dot2, position)
+
+    prev_vision = is_visible(prev_result[-2], dot1, dot2)
+
+    for cur_dot_index in range(-1, len(prev_result)):
+        cur_vision = is_visible(prev_result[cur_dot_index], dot1, dot2)
+
+        if (prev_vision):
+            if (cur_vision):
+                cur_result.append(prev_result[cur_dot_index])
+            else:
+                figure_line = [prev_result[cur_dot_index - 1], prev_result[cur_dot_index]]
+
+                cur_result.append(get_lines_parametric_intersec(figure_line, cutter_line, normal))
         else:
-            if t < t_end:
-                t_end = t
+            if (cur_vision):
+                figure_line = [prev_result[cur_dot_index - 1], prev_result[cur_dot_index]]
 
-        if t_start > t_end:
-            break
+                cur_result.append(get_lines_parametric_intersec(figure_line, cutter_line, normal))
 
-    if t_start < t_end:
-        dot_start = [round(line[0][0] + vect[0] * t_start),
-                     round(line[0][1] + vect[1] * t_start)]
-        dot_end = [round(line[0][0] + vect[0] * t_end),
-                   round(line[0][1] + vect[1] * t_end)]
-        c.create_line(dot_start, dot_end, fill=colorDraw[1], width=3, tag=f'line{TAG}')
-        print(f'DB: cyrus tag = {TAG}')
+                cur_result.append(prev_result[cur_dot_index])
+
+        prev_vision = cur_vision
+
+    return cur_result
+
+def cut_area(cutter, figure):
+    if (len(cutter) < 3):
+        messagebox.showinfo("Ошибка", "Не задан отсекатель")
+        return
+
+    if (not isCutterConvex(cutter)):
+        messagebox.showinfo("Ошибка", "Отсекатель должен быть выпуклым многоугольником")
+        return
+
+    result = figure.copy()
+
+    for cur_dot_ind in range(-1, len(cutter) - 1):
+        line = [cutter[cur_dot_ind], cutter[cur_dot_ind + 1]]
+
+        position_dot = cutter[cur_dot_ind + 1]
+
+        result = sutherland_hodgman_algorythm(line, position_dot, result)
+
+        if (len(result) <= 2):
+            return
+
+    return result
+
+
+def is_in_section(point, section):
+    fvect = get_vect(point, section[0])
+    svect = get_vect(*section)
+
+    if abs(get_vect_mul(fvect, svect)) <= 1e-6:
+        if section[0] < point < section[1] or section[1] < point < section[0]:
+            return True
+
+    return False
+
+
+def get_sections(section, points):
+    new_points = [*section]
+    for point in points:
+        if is_in_section(point, section):
+            new_points.append(point)
+
+    new_points.sort()
+
+    sections = []
+    for i in range(len(new_points) - 1):
+        sections.append([new_points[i], new_points[i + 1]])
+
+    return sections
+
+
+def check_vis(point, dot_start, dot_end):
+    fvect = get_vect(dot_start, dot_end)
+    svect = get_vect(dot_start, point)
+
+    if get_vect_mul(fvect, svect) >= 0:
+        return True
+
+    return False
+
+
+def get_intersection(section, edge, normal):
+    vect = get_vect(section[0], section[1])
+    w_vect = get_vect(edge[0], section[0])
+
+    vect_scal = get_scalar_mul(vect, normal)
+    w_wect_scal = get_scalar_mul(w_vect, normal)
+
+    diff = [section[1][0] - section[0][0], section[1][1] - section[0][1]]
+    t = -w_wect_scal / vect_scal
+
+    return [section[0][0] + diff[0] * t, section[0][1] + diff[1] * t]
 
 
 def isCutterConvex(cutter):
@@ -310,45 +410,40 @@ def isCutterConvex(cutter):
 
 
 CUTTER_END = []
+DOTS_POLYGON = [[]]
 def click(event):
-    global defCoords, SHIFTFLAG, TAG, DOTS_CUTTER, TIME_FLAG, FILLFLAG, CUTTERFLAG, CUTTER_START, LINEFLAG, LINE_START, CUTTER_END
+    global DOTS_POLYGON, defCoords, SHIFTFLAG, TAG, DOTS_CUTTER, TIME_FLAG, FILLFLAG, CUTTERFLAG, CUTTER_START, LINEFLAG, LINE_START, CUTTER_END
 
-    if event.x < 65 or event.x > 665 + dx or event.y < 210 or event.y > 810 + dy:
+    if event.x < 65 or event.x > 665 + dx or event.y - 10 < 210 or event.y - 10 > 810 + dy:
         return
 
     if not CUTTERENDEDITING:
-        DOTS.append([event.x, event.y-10])
+        DOTS_CUTTER.append([event.x, event.y - 10])
         del_with_tag('lineHelper')
 
         if SHIFTFLAG:
-            if abs(DOTS[-2][0] - event.x) < abs(DOTS[-2][1] - event.y + 10):
-                DOTS[-1][0] = DOTS[-2][0]
+            if abs(DOTS_CUTTER[-2][0] - event.x) < abs(DOTS_CUTTER[-2][1] - event.y + 10):
+                DOTS_CUTTER[-1][0] = DOTS_CUTTER[-2][0]
             else:
-                DOTS[-1][1] = DOTS[-2][1]
+                DOTS_CUTTER[-1][1] = DOTS_CUTTER[-2][1]
 
-        if len(DOTS) > 1:
-            c.create_line(DOTS[-2], DOTS[-1], fill='red', width=2, tag=f'line{TAG}')
-            story.append(f'DOTS.pop();del_with_tag("line{TAG}")')
+        if len(DOTS_CUTTER) > 1:
+            c.create_line(DOTS_CUTTER[-2], DOTS_CUTTER[-1], fill='red', width=2, tag=f'line{TAG}')
+            story.append(f'DOTS_CUTTER.pop();del_with_tag("line{TAG}")')
             TAG += 1
     else:
-        LINEFLAG += 1
-        if LINEFLAG % 2:
-            LINE_START = [event.x, event.y - 10]
-        elif LINEFLAG > 1:
-            del_with_tag('lineHelper')
-            LINE_END = [event.x, event.y - 10]
+        DOTS_POLYGON[-1].append([event.x, event.y - 10])
+        del_with_tag('lineHelper')
 
-            if SHIFTFLAG:
-                if abs(LINE_START[0] - event.x) < abs(LINE_START[1] - event.y + 10):
-                    LINE_END = [LINE_START[0], event.y - 10]
-                else:
-                    LINE_END[1] = LINE_START[1]
+        if SHIFTFLAG:
+            if abs(DOTS_POLYGON[-1][-2][0] - event.x) < abs(DOTS_POLYGON[-1][-2][1] - event.y + 10):
+                DOTS_POLYGON[-1][-1][0] = DOTS_POLYGON[-1][-2][0]
+            else:
+                DOTS_POLYGON[-1][-1][1] = DOTS_POLYGON[-1][-2][1]
 
-            obj = c.create_line(LINE_START, LINE_END, fill='black', width=1, dash=(7, 9), tag=f'line{TAG}')
-            print(f'DB: line tag = {TAG}')
-            cyrusbeck(DOTS, [LINE_START, LINE_END], get_normals(DOTS))
-            story.append(f'del_with_tag("line{TAG}")')
-
+        if len(DOTS_POLYGON[-1]) > 1:
+            c.create_line(DOTS_POLYGON[-1][-2], DOTS_POLYGON[-1][-1], fill='black', width=1, tag=f'line{TAG}')
+            story.append(f'DOTS_POLYGON[-1].pop();del_with_tag("line{TAG}")')
             TAG += 1
 
     print(event.x, event.y)
@@ -362,7 +457,7 @@ def motion(event, fl=0):
     global SHIFTFLAG
     SHIFTFLAG = fl
     x, y = event.x, event.y
-    if x < 65 or x > 665 + dx or y < 210 or y > 810 + dy:
+    if x < 65 or x > 665 + dx or y - 10 < 210 or y - 10 > 810 + dy:
         return
 
     del_with_tag('lineHelper')
@@ -386,18 +481,16 @@ def motion(event, fl=0):
             else:
                 y = DOTS_CUTTER[-1][1]
             c.create_line(DOTS_CUTTER[-1], x, y, fill='black', width=1, dash=(7, 9), tag='lineHelper')
-
-    elif LINEFLAG:
-        if LINEFLAG % 2:
-            if not fl:
-                c.create_line(LINE_START, x, y-10, fill='black', width=1, dash=(7, 9), tag='lineHelper')
+    elif CUTTERENDEDITING and len(DOTS_POLYGON[-1]):
+        if not fl:
+            c.create_line(DOTS_POLYGON[-1][-1], x, y - 10, fill='black', width=1, dash=(7, 9), tag='lineHelper')
+        else:
+            if abs(DOTS_POLYGON[-1][-1][0] - x) < abs(DOTS_POLYGON[-1][-1][1] - y + 10):
+                x = DOTS_POLYGON[-1][-1][0]
+                y -= 10
             else:
-                if abs(LINE_START[0] - x) < abs(LINE_START[1] - y + 10):
-                    x = LINE_START[0]
-                    y -= 10
-                else:
-                    y = LINE_START[1]
-                c.create_line(LINE_START, x, y, fill='black', width=1, dash=(7, 9), tag='lineHelper')
+                y = DOTS_POLYGON[-1][-1][1]
+            c.create_line(DOTS_POLYGON[-1][-1], x, y, fill='black', width=1, dash=(7, 9), tag='lineHelper')
 
 
 def motionWithShift(event):
@@ -537,7 +630,7 @@ def start_state():
     CUTTERENDEDITING = 0
 
     story = ['start_state()']
-    DOTS = []
+    DOTS_CUTTER = []
     redrawCommands = []
     clean_all()
     CUTTERFLAG = 2
