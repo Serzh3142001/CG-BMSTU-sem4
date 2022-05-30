@@ -67,7 +67,8 @@ btn_exit.place(x=630, y=840)
 btn_draw_ellipse.place(x=15, y=80)
 btn_cl_all.place(x=15, y=175)'''
 
-rbtns = ''''''
+rbtns = '''set0.place(x=20, y=20):1
+set1.place(x=20, y=50):1'''
 
 TASK = '''
 Реализовать отсечение отрезков выпуклым многоугольным отсекателем.
@@ -213,7 +214,7 @@ def close(event=None):
         res = cut_area(DOTS_CUTTER, DOTS_POLYGON[-1])
         res.append(res[0])
         print('res:', res)
-        c.create_line(res, fill='blue', width=3, tag=f'line{TAG}')
+        c.create_line(res, fill=colorDraw[1], width=3, tag=f'line{TAG}')
         # 5 приоритетов геополитики
         # redrawCommands.append(
         #     f'c.create_line(net_to_canv({canv_to_net(DOTS_CUTTER[0])}), net_to_canv({canv_to_net(DOTS_CUTTER[-1])}), fill=\'black\', width=1, tag=f\'line{TAG}\')')
@@ -257,13 +258,17 @@ def get_normal(dot_start, dot_end, dot_check):
 
 #---------------------------------------------------
 
-def is_visible(dot, f_dot, s_dot):
-    vec1 = get_vect(f_dot, s_dot)
-    vec2 = get_vect(f_dot, dot)
+def is_visible(dot, f_dot, s_dot, other):
+    # print(canv_to_net(dot), canv_to_net(f_dot), canv_to_net(s_dot), end=': ')
+    vec1 = get_vect(f_dot, dot)
+    normal = get_normal(f_dot, s_dot, other)
+    scal_pr = get_scalar_mul(normal, vec1)
 
-    if (get_vect_mul(vec1, vec2) <= 0):
+    if scal_pr > 0:
+        print(True)
         return True
     else:
+        print(False)
         return False
 
 X_DOT = 0
@@ -282,7 +287,7 @@ def get_lines_parametric_intersec(line1, line2, normal):
 
     return dot_intersec
 
-def sutherland_hodgman_algorythm(cutter_line, position, prev_result):
+def sutherland_hodgman_algorythm(cutter_line, dot3, position, prev_result):
     cur_result = []
 
     dot1 = cutter_line[0]
@@ -290,10 +295,10 @@ def sutherland_hodgman_algorythm(cutter_line, position, prev_result):
 
     normal = get_normal(dot1, dot2, position)
 
-    prev_vision = is_visible(prev_result[-2], dot1, dot2)
+    prev_vision = is_visible(prev_result[-2], dot1, dot2, dot3)
 
     for cur_dot_index in range(-1, len(prev_result)):
-        cur_vision = is_visible(prev_result[cur_dot_index], dot1, dot2)
+        cur_vision = is_visible(prev_result[cur_dot_index], dot1, dot2, dot3)
 
         if (prev_vision):
             if (cur_vision):
@@ -326,16 +331,31 @@ def cut_area(cutter, figure):
     result = figure.copy()
 
     for cur_dot_ind in range(-1, len(cutter) - 1):
+        col = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
         line = [cutter[cur_dot_ind], cutter[cur_dot_ind + 1]]
 
         position_dot = cutter[cur_dot_ind + 1]
 
-        result = sutherland_hodgman_algorythm(line, position_dot, result)
+        if var.get():
+            del_with_tag(f'help')
+            result.append(result[0])
+            c.create_line(result, fill=rgb_to_hex(col), width=3, tag=f'help')
+            result.pop()
+            c.update()
+            sleep(1)
+
+        result = sutherland_hodgman_algorythm(line, cutter[(cur_dot_ind + 2) % len(cutter)], position_dot, result)
 
         if (len(result) <= 2):
             return
 
+    del_with_tag(f'help')
     return result
+
+
+def rgb_to_hex(rgb):
+    rgb = tuple(map(int, rgb))
+    return '#%02x%02x%02x' % rgb
 
 
 def is_in_section(point, section):
